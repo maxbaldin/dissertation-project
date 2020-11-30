@@ -1,11 +1,28 @@
 version: '3'
 services:
-  service_a:
-    tty: true
-    environment:
-      CFG: src/evaluation/cfg/service_a.yaml
+  node_1_service_a:
     build:
       context: .
-      dockerfile: ./src/evaluation/docker/distributed_system/a/Dockerfile
+      dockerfile: ./src/evaluation/docker/distributed_system/service_a/Dockerfile
+      args:
+        service_config_file: service_a.yaml
     volumes:
       - .:/code
+  node_2_services_b_c:
+    build:
+      context: .
+      dockerfile: ./src/evaluation/docker/distributed_system/service_b_c/Dockerfile
+    volumes:
+      - .:/code
+    expose:
+      - 1234
+  node_3_services_d:
+    build:
+      context: .
+      dockerfile: ./src/evaluation/docker/distributed_system/service_d/Dockerfile
+      args:
+        service_config_file: service_d.yaml
+    volumes:
+      - .:/code
+    expose:
+      - 1234

@@ -11,7 +11,13 @@ import (
 )
 
 type Config struct {
+	Service              Service
 	OutboundDependencies []evaluation.OutboundDependency `yaml:"outbound_dependencies"`
+}
+
+type Service struct {
+	ListenAddr string `yaml:"listen_addr"`
+	Name       string
 }
 
 func main() {
@@ -23,7 +29,8 @@ func main() {
 		checkErr(err)
 		checkErr(yaml.Unmarshal(cfgData, &config))
 	}
-	service := evaluation.NewTestService(config.OutboundDependencies)
+
+	service := evaluation.NewTestService(config.OutboundDependencies, config.Service.ListenAddr)
 
 	service.Run(context.Background())
 }
