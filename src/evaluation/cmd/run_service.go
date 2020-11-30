@@ -8,7 +8,11 @@ import (
 	"github.com/maxbaldin/dissertation-project/src/evaluation"
 
 	yaml "gopkg.in/yaml.v2"
+
+	log "github.com/sirupsen/logrus"
 )
+
+var logger *log.Logger
 
 type Config struct {
 	Service              Service
@@ -21,6 +25,9 @@ type Service struct {
 }
 
 func main() {
+	logger = log.New()
+	logger.SetLevel(log.DebugLevel)
+
 	var config Config
 	if cfgPath, exist := os.LookupEnv("CFG"); !exist {
 		panic("you pass path to the config file in 'cfgPath' environment variable")
@@ -30,13 +37,15 @@ func main() {
 		checkErr(yaml.Unmarshal(cfgData, &config))
 	}
 
-	service := evaluation.NewTestService(config.OutboundDependencies, config.Service.ListenAddr)
+	entry := logger.WithField("app", config.Service.Name)
+
+	service := evaluation.NewTestService(config.OutboundDependencies, config.Service.ListenAddr, entry)
 
 	service.Run(context.Background())
 }
 
 func checkErr(err error) {
 	if err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
 }

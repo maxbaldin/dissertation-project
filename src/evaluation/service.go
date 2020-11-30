@@ -3,19 +3,23 @@ package evaluation
 import (
 	"bufio"
 	"context"
-	"fmt"
-	"log"
 	"math/rand"
 	"net"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
-const ReconnectTimeout = time.Second * 3
+const (
+	ReconnectTimeout      = time.Second * 3
+	MaxBytesPerConnection = 2048
+)
 
 type TestService struct {
 	dependencies []OutboundDependency
 	listenAddr   string
+	logger       *log.Entry
 }
 
 type OutboundDependency struct {
@@ -26,8 +30,8 @@ type OutboundDependency struct {
 	TimeBetweenPacketsMilliseconds int    `yaml:"time_between_packets_ms"`
 }
 
-func NewTestService(deps []OutboundDependency, listenAddr string) *TestService {
-	return &TestService{dependencies: deps, listenAddr: listenAddr}
+func NewTestService(deps []OutboundDependency, listenAddr string, logger *log.Entry) *TestService {
+	return &TestService{dependencies: deps, listenAddr: listenAddr, logger: logger}
 }
 
 func (ts *TestService) Run(ctx context.Context) {
@@ -66,7 +70,7 @@ start:
 	}
 	conn, err := net.Dial(dependency.Protocol, dependency.Addr)
 	if err != nil {
-		log.Println("Unable connect to the target service " + dependency.Addr + ": reconnecting")
+		ts.logger.Warnf("Unable connect to the target service %s (%s): reconnecting", dependency.Addr, err)
 		time.Sleep(ReconnectTimeout)
 		goto start
 	}
@@ -78,10 +82,10 @@ start:
 			return
 		}
 		rand.Read(packet)
-		log.Printf("Sending data to %s:%s", dependency.Protocol, dependency.Addr)
+		ts.logger.Debugf("Sending data to %s:%s", dependency.Protocol, dependency.Addr)
 		_, err := connBuffer.Write(packet)
 		if err != nil {
-			log.Println("Unable write to the target service: reconnecting")
+			ts.logger.Warnf("Unable write to the target service %s (%s): reconnecting", dependency.Addr, err)
 			goto start
 		}
 		time.Sleep(time.Millisecond * time.Duration(dependency.TimeBetweenPacketsMilliseconds))
@@ -99,10 +103,10 @@ func (ts *TestService) listen(ctx context.Context, wg *sync.WaitGroup) {
 
 	l, err := net.Listen("tcp4", ts.listenAddr)
 	if err != nil {
-		log.Fatal("Error listening:", err.Error())
+		ts.logger.Fatalf("Error listening: %s", err)
 	}
 	defer l.Close()
-	log.Println("Listen on", ts.listenAddr)
+	ts.logger.Infof("Listen on %s", ts.listenAddr)
 
 	for {
 		if needToStop {
@@ -110,26 +114,23 @@ func (ts *TestService) listen(ctx context.Context, wg *sync.WaitGroup) {
 		}
 		c, err := l.Accept()
 		if err != nil {
-			fmt.Println("Unable to accept connection", err)
-			return
+			ts.logger.Warnf("Unable to accept connection %s", err)
+			continue
 		}
 		go ts.handleConnection(c)
 	}
 }
 
 func (ts *TestService) handleConnection(conn net.Conn) {
-	buf := make([]byte, 2048)
+	buf := make([]byte, MaxBytesPerConnection)
 	_, err := conn.Read(buf)
 	if err != nil {
-		fmt.Println("Error reading:", err.Error())
-	}
-	_, err = conn.Write([]byte("Message received."))
-	if err != nil {
-		fmt.Println("Error writing:", err.Error())
+		ts.logger.Warnf("Error reading: %s", err)
+		return
 	}
 	err = conn.Close()
 	if err != nil {
-		fmt.Println("Error closing:", err.Error())
+		ts.logger.Warnf("Error closing: %s", err)
 	}
-	log.Println("Connection handled")
+	ts.logger.Debug("Connection handled")
 }
