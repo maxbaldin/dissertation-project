@@ -2,6 +2,8 @@ FROM golang:1.14
 MAINTAINER  Maksim Baldin maksim.baldin@online.liverpool.ac.uk
 
 RUN apt-get update && apt-get install -y supervisor
+RUN apt-get install -y python-pip && pip install supervisor-stdout
+
 RUN mkdir -p /var/log/supervisor
 
 COPY src/evaluation/cfg/b_c_supervisord.conf /etc/supervisor/conf.d/supervisord.conf
