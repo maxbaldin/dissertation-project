@@ -6,7 +6,7 @@ RUN apt-get install -y python-pip && pip install supervisor-stdout
 
 RUN mkdir -p /var/log/supervisor
 
-COPY src/evaluation/cfg/b_c_supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY src/evaluation/cfg/service_b_c_supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 WORKDIR /service
 

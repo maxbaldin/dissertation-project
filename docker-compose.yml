@@ -1,28 +1,36 @@
 version: '3'
 services:
   node_1_service_a:
+    restart: always
     build:
       context: .
       dockerfile: ./src/evaluation/docker/distributed_system/service_a/Dockerfile
       args:
         service_config_file: service_a.yaml
-    volumes:
-      - .:/code
   node_2_services_b_c:
+    restart: always
     build:
       context: .
       dockerfile: ./src/evaluation/docker/distributed_system/service_b_c/Dockerfile
-    volumes:
-      - .:/code
     expose:
       - 1234
   node_3_services_d:
+    restart: always
     build:
       context: .
       dockerfile: ./src/evaluation/docker/distributed_system/service_d/Dockerfile
       args:
         service_config_file: service_d.yaml
-    volumes:
-      - .:/code
     expose:
       - 1234
+  mysql:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - /home/user/db/mysql/data:/var/lib/mysql
+      - /home/user/db/mysql/init:/docker-entrypoint-initdb.d/:ro
