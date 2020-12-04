@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/gopacket/pcap"
 	"github.com/maxbaldin/dissertation-project/src/implementation/agent/core"
-	"github.com/maxbaldin/dissertation-project/src/implementation/agent/core/integration"
+	"github.com/maxbaldin/dissertation-project/src/implementation/agent/core/integration/collector"
 	"github.com/maxbaldin/dissertation-project/src/implementation/agent/core/network"
 	"github.com/maxbaldin/dissertation-project/src/implementation/agent/core/process"
 )
@@ -16,12 +16,16 @@ func main() {
 	interfaces, err := net.Interfaces()
 	checkErr(err)
 
-	processRepository, err := process.NewRepository(time.Second * 5)
+	nodesRepository, err := collector.NewNodeRepository("", time.Second*5)
+	checkErr(err)
+
+	processRepository, err := process.NewRepository(nodesRepository, time.Second*5)
 	checkErr(err)
 	defer processRepository.Close()
 
 	transformer := core.NewPacketTransformer(processRepository)
-	producer := integration.NewDirectProducer()
+	aggregator := core.NewAggregator(time.Second*1, 100)
+	producer := collector.NewDirectProducer(aggregator, 1000)
 	listener := network.NewListener(transformer, producer)
 
 	var wg sync.WaitGroup

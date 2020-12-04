@@ -9,5 +9,6 @@ type Packet struct {
 	TargetIp   string
 	TargetPort int
 
-	Size int
+	Size    int
+	Packets int
 }

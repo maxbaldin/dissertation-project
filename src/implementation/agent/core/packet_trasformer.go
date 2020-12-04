@@ -44,6 +44,7 @@ func (pt *PacketTransformer) Transform(packet gopacket.Packet) (statsRow entity.
 				TargetIp:   targetIp.String(),
 				TargetPort: targetPort,
 				Size:       packet.Metadata().Length,
+				Packets:    1,
 			}
 			process := pt.processRepository.FindByNetworkActivity(packet)
 

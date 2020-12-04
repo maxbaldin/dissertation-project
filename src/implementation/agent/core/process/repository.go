@@ -14,16 +14,21 @@ var UnknownProcess = entity.Process{
 	Path: "Unknown",
 }
 
-type Repository struct {
-	updateTicker     *time.Ticker
-	mu               sync.RWMutex
-	connectionsIndex NetTCPRowsIndex
-	processesIndex   ProcessesIndex
+type NodesRepository interface {
+	IsKnownNode(ip string) bool
 }
 
-func NewRepository(updateInterval time.Duration) (*Repository, error) {
+type Repository struct {
+	updateTicker     *time.Ticker
+	nodesRepository  NodesRepository
+	connectionsIndex NetTCPRowsIndex
+	processesIndex   ProcessesIndex
+	mu               sync.RWMutex
+}
+
+func NewRepository(nodesRepository NodesRepository, updateInterval time.Duration) (*Repository, error) {
 	ticker := time.NewTicker(updateInterval)
-	repo := &Repository{updateTicker: ticker}
+	repo := &Repository{updateTicker: ticker, nodesRepository: nodesRepository}
 
 	go func(t *time.Ticker) {
 		for range t.C {
@@ -64,12 +69,14 @@ func (r *Repository) FindByNetworkActivity(packet entity.Packet) (proc entity.Pr
 			proc.Id = process.PID
 			proc.Name = process.Name
 			proc.Sender = true
+			proc.CommunicationWithKnownNode = r.nodesRepository.IsKnownNode(packet.TargetIp)
 			return proc
 		}
 	} else if targetInfoExist {
 		if process, exist := r.processesIndex[targetInfo.Inode]; exist {
 			proc.Id = process.PID
 			proc.Name = process.Name
+			proc.CommunicationWithKnownNode = r.nodesRepository.IsKnownNode(packet.SourceIp)
 			return proc
 		}
 	}

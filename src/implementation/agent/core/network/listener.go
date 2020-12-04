@@ -13,7 +13,7 @@ type Listener struct {
 }
 
 type PacketProducer interface {
-	Produce(packet entity.StatsRow) error
+	Produce(packet entity.StatsRow)
 }
 
 type PacketTransformer interface {
@@ -32,9 +32,6 @@ func (l *Listener) Listen(handle *pcap.Handle) {
 		if err != nil {
 			log.Info(err)
 		}
-		err = l.producer.Produce(statsRow)
-		if err != nil {
-			log.Info(err)
-		}
+		l.producer.Produce(statsRow)
 	}
 }

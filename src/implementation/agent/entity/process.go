@@ -1,8 +1,9 @@
 package entity
 
 type Process struct {
-	Id     int
-	Name   string
-	Path   string
-	Sender bool
+	Id                         int
+	Name                       string
+	Path                       string
+	Sender                     bool
+	CommunicationWithKnownNode bool
 }

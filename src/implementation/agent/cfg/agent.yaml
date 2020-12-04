@@ -1,0 +1,10 @@
+network:
+  pcap:
+    bff_filter: tcp
+process:
+  update_interval_sec: 5
+integration:
+  collector:
+    url: http://adasd
+    queue_len: 1000
+    known_nodes_update_interval_sec: 5
