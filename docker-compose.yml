@@ -5,8 +5,6 @@ services:
     build:
       context: .
       dockerfile: ./src/evaluation/docker/distributed_system/service_a/Dockerfile
-      args:
-        service_config_file: service_a.yaml
   node_2_services_b_c:
     restart: always
     build:
@@ -19,18 +17,23 @@ services:
     build:
       context: .
       dockerfile: ./src/evaluation/docker/distributed_system/service_d/Dockerfile
-      args:
-        service_config_file: service_d.yaml
     expose:
       - 1234
+  collector:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./src/evaluation/docker/collector/Dockerfile
+    ports:
+    - "8080:80"
   mysql:
     image: mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: test_db
+      MYSQL_DATABASE: collector
     ports:
-      - "3307:3306"
+      - "3305:3306"
     volumes:
-      - /home/user/db/mysql/data:/var/lib/mysql
-      - /home/user/db/mysql/init:/docker-entrypoint-initdb.d/:ro
+      - ./src/implementation/collector/res/db/mysql/data:/var/lib/mysql
+      - ./src/implementation/collector/res/db/mysql/init:/docker-entrypoint-initdb.d/:ro

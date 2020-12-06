@@ -7,6 +7,7 @@ import (
 )
 
 type DirectProducer struct {
+	collectorAddr   string
 	aggregator      Aggregator
 	inQueue         chan entity.StatsRow
 	aggregatedQueue chan entity.StatsRow
@@ -16,8 +17,9 @@ type Aggregator interface {
 	Aggregate(in chan entity.StatsRow, out chan entity.StatsRow)
 }
 
-func NewDirectProducer(aggregator Aggregator, queueLen int) *DirectProducer {
+func NewDirectProducer(collectorAddr string, aggregator Aggregator, queueLen int) *DirectProducer {
 	producer := &DirectProducer{
+		collectorAddr:   collectorAddr,
 		aggregator:      aggregator,
 		inQueue:         make(chan entity.StatsRow, queueLen),
 		aggregatedQueue: make(chan entity.StatsRow, queueLen),

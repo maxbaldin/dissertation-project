@@ -6,26 +6,28 @@ import (
 	"time"
 
 	"github.com/google/gopacket/pcap"
-	"github.com/maxbaldin/dissertation-project/src/implementation/agent/core"
-	"github.com/maxbaldin/dissertation-project/src/implementation/agent/core/integration/collector"
-	"github.com/maxbaldin/dissertation-project/src/implementation/agent/core/network"
-	"github.com/maxbaldin/dissertation-project/src/implementation/agent/core/process"
+	"github.com/maxbaldin/dissertation-project/src/implementation/agent/integration/collector"
+	"github.com/maxbaldin/dissertation-project/src/implementation/agent/usecase"
+	"github.com/maxbaldin/dissertation-project/src/implementation/agent/usecase/network"
+	"github.com/maxbaldin/dissertation-project/src/implementation/agent/usecase/process"
 )
 
 func main() {
 	interfaces, err := net.Interfaces()
 	checkErr(err)
 
-	nodesRepository, err := collector.NewNodeRepository("", time.Second*5)
+	nodesRepository, err := collector.NewNodeRepository("http://collector/known_nodes", time.Second*5)
 	checkErr(err)
 
 	processRepository, err := process.NewRepository(nodesRepository, time.Second*5)
 	checkErr(err)
 	defer processRepository.Close()
 
-	transformer := core.NewPacketTransformer(processRepository)
-	aggregator := core.NewAggregator(time.Second*1, 100)
-	producer := collector.NewDirectProducer(aggregator, 1000)
+	transformer := usecase.NewPacketTransformer(processRepository)
+
+	aggregator := usecase.NewAggregator(time.Second*1, 100, 5000)
+	producer := collector.NewDirectProducer("http://collector", aggregator, 1000)
+
 	listener := network.NewListener(transformer, producer)
 
 	var wg sync.WaitGroup

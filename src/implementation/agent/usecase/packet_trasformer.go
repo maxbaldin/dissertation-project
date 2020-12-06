@@ -1,4 +1,4 @@
-package core
+package usecase
 
 import (
 	"errors"
@@ -43,10 +43,21 @@ func (pt *PacketTransformer) Transform(packet gopacket.Packet) (statsRow entity.
 				SourcePort: sourcePort,
 				TargetIp:   targetIp.String(),
 				TargetPort: targetPort,
-				Size:       packet.Metadata().Length,
+				Size:       uint(packet.Metadata().Length),
 				Packets:    1,
 			}
 			process := pt.processRepository.FindByNetworkActivity(packet)
+
+			// remove information about the unknown nodes
+			if process.CommunicationWithKnownNode {
+				if process.Sender {
+					packet.TargetIp = ""
+					packet.TargetPort = 0
+				} else {
+					packet.TargetIp = ""
+					packet.SourcePort = 0
+				}
+			}
 
 			return entity.StatsRow{
 				Process: process,

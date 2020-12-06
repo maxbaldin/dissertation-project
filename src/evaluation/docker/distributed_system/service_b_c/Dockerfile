@@ -13,8 +13,7 @@ WORKDIR /service
 ENV GO111MODULE=on \
     CGO_ENABLED=0 \
     GOOS=linux \
-    GOARCH=amd64 \
-    CFG=src/evaluation/cfg/$service_config_file
+    GOARCH=amd64
 
 # Copy go mod and sum files
 COPY go.mod go.sum ./

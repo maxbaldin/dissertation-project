@@ -109,8 +109,6 @@ func easyjsonFf084a1fDecodeGithubComMaxbaldinDissertationProjectSrcImplementatio
 			continue
 		}
 		switch key {
-		case "Process":
-			easyjsonFf084a1fDecodeGithubComMaxbaldinDissertationProjectSrcImplementationAgentEntity1(in, &out.Process)
 		case "SourceIp":
 			out.SourceIp = string(in.String())
 		case "SourcePort":
@@ -120,9 +118,9 @@ func easyjsonFf084a1fDecodeGithubComMaxbaldinDissertationProjectSrcImplementatio
 		case "TargetPort":
 			out.TargetPort = int(in.Int())
 		case "Size":
-			out.Size = int(in.Int())
+			out.Size = uint(in.Uint())
 		case "Packets":
-			out.Packets = int(in.Int())
+			out.Packets = uint(in.Uint())
 		default:
 			in.SkipRecursive()
 		}
@@ -138,13 +136,8 @@ func easyjsonFf084a1fEncodeGithubComMaxbaldinDissertationProjectSrcImplementatio
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"Process\":"
-		out.RawString(prefix[1:])
-		easyjsonFf084a1fEncodeGithubComMaxbaldinDissertationProjectSrcImplementationAgentEntity1(out, in.Process)
-	}
-	{
 		const prefix string = ",\"SourceIp\":"
-		out.RawString(prefix)
+		out.RawString(prefix[1:])
 		out.String(string(in.SourceIp))
 	}
 	{
@@ -165,12 +158,12 @@ func easyjsonFf084a1fEncodeGithubComMaxbaldinDissertationProjectSrcImplementatio
 	{
 		const prefix string = ",\"Size\":"
 		out.RawString(prefix)
-		out.Int(int(in.Size))
+		out.Uint(uint(in.Size))
 	}
 	{
 		const prefix string = ",\"Packets\":"
 		out.RawString(prefix)
-		out.Int(int(in.Packets))
+		out.Uint(uint(in.Packets))
 	}
 	out.RawByte('}')
 }

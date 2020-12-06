@@ -29,7 +29,7 @@ func main() {
 	logger.SetLevel(log.DebugLevel)
 
 	var config Config
-	if cfgPath, exist := os.LookupEnv("CFG"); !exist {
+	if cfgPath, exist := os.LookupEnv("TEST_SERVICE_CFG"); !exist {
 		panic("you pass path to the config file in 'cfgPath' environment variable")
 	} else {
 		cfgData, err := ioutil.ReadFile(cfgPath)
