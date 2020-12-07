@@ -4,11 +4,10 @@ import (
 	"net"
 	"testing"
 
-	"github.com/maxbaldin/dissertation-project/src/implementation/agent/core/process"
+	"github.com/maxbaldin/dissertation-project/src/implementation/agent/usecase/process"
 	"github.com/stretchr/testify/assert"
 )
 
-// @todo handle special cases (nethogs tests)
 func TestParseNetTCPRow(t *testing.T) {
 	raw := `46: 0401A8C0:01BB 030310AC:1770 01 00000150:00000001  01:00000019 00000001  1000 9 54165785 4 cd1e6040 25 4 27 3 -1`
 	row, err := process.ParseNetTCPRow(raw)
@@ -57,20 +56,20 @@ func TestParseNetTCPRows(t *testing.T) {
 	expectedOut := []process.NetTCPRow{
 		{
 			NumberOfEntry: 0,
-			Local: proc.NetTCPRowAddress{
+			Local: process.NetTCPRowAddress{
 				IpV4: net.IPv4(127, 0, 0, 53),
 				Port: 53,
 			},
-			Remote: proc.NetTCPRowAddress{
+			Remote: process.NetTCPRowAddress{
 				IpV4: net.IPv4(0, 0, 0, 0),
 				Port: 0,
 			},
 			ConnectionState: 10,
-			Queue: proc.NetTCPRowQueue{
+			Queue: process.NetTCPRowQueue{
 				Transmission: 0,
 				Receive:      0,
 			},
-			Timer: proc.NetTCPRowTimer{
+			Timer: process.NetTCPRowTimer{
 				TimerActive:              0,
 				NumOfJiffiesUntilExpires: 0,
 			},
@@ -88,20 +87,20 @@ func TestParseNetTCPRows(t *testing.T) {
 		},
 		{
 			NumberOfEntry: 1,
-			Local: proc.NetTCPRowAddress{
+			Local: process.NetTCPRowAddress{
 				IpV4: net.IPv4(127, 0, 0, 1),
 				Port: 631,
 			},
-			Remote: proc.NetTCPRowAddress{
+			Remote: process.NetTCPRowAddress{
 				IpV4: net.IPv4(0, 0, 0, 0),
 				Port: 0,
 			},
 			ConnectionState: 10,
-			Queue: proc.NetTCPRowQueue{
+			Queue: process.NetTCPRowQueue{
 				Transmission: 0,
 				Receive:      0,
 			},
-			Timer: proc.NetTCPRowTimer{
+			Timer: process.NetTCPRowTimer{
 				TimerActive:              0,
 				NumOfJiffiesUntilExpires: 0,
 			},

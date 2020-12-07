@@ -6,11 +6,12 @@ import (
 	"fmt"
 )
 
-//easyjson:json
+//easyeasyjson:json
 type StatsRow struct {
-	hash    string
-	Process Process
-	Packet  Packet
+	hash     string
+	Hostname string
+	Process  Process
+	Packet   Packet
 }
 
 func (s *StatsRow) Hash() string {
@@ -23,9 +24,10 @@ func (s *StatsRow) Hash() string {
 		buff.WriteString(fmt.Sprintf("%v", s.Process.Sender))
 
 		buff.WriteString(s.Packet.SourceIp)
+		buff.WriteString(fmt.Sprintf("%v", s.Packet.SourcePort))
+
 		buff.WriteString(s.Packet.TargetIp)
 		buff.WriteString(fmt.Sprintf("%v", s.Packet.TargetPort))
-		buff.WriteString(fmt.Sprintf("%v", s.Packet.SourcePort))
 
 		s.hash = fmt.Sprintf("%x", md5.Sum(buff.Bytes()))
 	}

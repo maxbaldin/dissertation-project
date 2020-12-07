@@ -36,6 +36,8 @@ func easyjsonFf084a1fDecodeGithubComMaxbaldinDissertationProjectSrcImplementatio
 			continue
 		}
 		switch key {
+		case "Hostname":
+			out.Hostname = string(in.String())
 		case "Process":
 			easyjsonFf084a1fDecodeGithubComMaxbaldinDissertationProjectSrcImplementationAgentEntity1(in, &out.Process)
 		case "Packet":
@@ -55,8 +57,13 @@ func easyjsonFf084a1fEncodeGithubComMaxbaldinDissertationProjectSrcImplementatio
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"Process\":"
+		const prefix string = ",\"Hostname\":"
 		out.RawString(prefix[1:])
+		out.String(string(in.Hostname))
+	}
+	{
+		const prefix string = ",\"Process\":"
+		out.RawString(prefix)
 		easyjsonFf084a1fEncodeGithubComMaxbaldinDissertationProjectSrcImplementationAgentEntity1(out, in.Process)
 	}
 	{

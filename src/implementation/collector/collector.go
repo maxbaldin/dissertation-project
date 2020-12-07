@@ -16,7 +16,7 @@ func main() {
 	idxController := controller.NewIndex()
 	http.HandleFunc("/", idxController.Handle)
 
-	mysqlDB, err := mysql.New("")
+	mysqlDB, err := mysql.New("collector:!VB3{&uC6uwA9M#P@tcp(mysql:3306)/collector")
 	if err != nil {
 		panic(err)
 	}
@@ -33,5 +33,6 @@ func main() {
 	knownNodesController := controller.NewKnownNodesController(knownNodesRepository)
 	http.HandleFunc("/known_nodes", knownNodesController.Handle)
 
+	log.Println("Application is ready")
 	log.Fatal(http.ListenAndServe(":80", nil))
 }

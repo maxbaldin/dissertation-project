@@ -7,7 +7,7 @@ import (
 )
 
 type KnownNodesDB interface {
-	KnownNodes(date string) ([]string, error)
+	KnownNodes() ([]string, error)
 }
 
 type KnownNodesRepository struct {
@@ -34,8 +34,7 @@ func NewKnownNodesRepository(db KnownNodesDB, updateInterval time.Duration) (*Kn
 }
 
 func (k *KnownNodesRepository) update() error {
-	now := time.Now()
-	nodes, err := k.db.KnownNodes(now.Format(YMDFormat))
+	nodes, err := k.db.KnownNodes()
 	if err != nil {
 		return err
 	}

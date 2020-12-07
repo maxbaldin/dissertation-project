@@ -4,14 +4,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maxbaldin/dissertation-project/src/implementation/agent/core"
 	"github.com/maxbaldin/dissertation-project/src/implementation/agent/entity"
+	"github.com/maxbaldin/dissertation-project/src/implementation/agent/usecase"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAggregator_Aggregate(t *testing.T) {
 	aggTime := time.Millisecond * 10
-	aggregator := usecase.NewAggregator(aggTime, 10)
+	aggregator := usecase.NewAggregator(aggTime, 10, 10)
 	inChan := make(chan entity.StatsRow, 10)
 
 	row1 := entity.StatsRow{

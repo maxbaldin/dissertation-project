@@ -24,7 +24,7 @@ func NewTrafficRepository(db TrafficDB) *TrafficRepository {
 }
 
 func (tr *TrafficRepository) Persist(row entity.Traffic) error {
-	log.Println(row)
+	log.Println("Persist", row)
 	return tr.db.InsertOrUpdateTraffic(
 		row.Inbound,
 		row.Date.Format(YMDFormat),

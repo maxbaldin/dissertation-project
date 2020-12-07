@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"os"
 	"strconv"
 
 	"github.com/google/gopacket"
@@ -12,6 +13,8 @@ import (
 var (
 	ErrTCPLayerIsNil = errors.New("tcp layer is nil")
 	ErrIPLayerIsNil  = errors.New("ip layer is nil")
+
+	hostname string
 )
 
 type ProcessRepository interface {
@@ -20,6 +23,10 @@ type ProcessRepository interface {
 
 type PacketTransformer struct {
 	processRepository ProcessRepository
+}
+
+func init() {
+	hostname, _ = os.Hostname()
 }
 
 func NewPacketTransformer(procRepository ProcessRepository) *PacketTransformer {
@@ -60,8 +67,9 @@ func (pt *PacketTransformer) Transform(packet gopacket.Packet) (statsRow entity.
 			}
 
 			return entity.StatsRow{
-				Process: process,
-				Packet:  packet,
+				Process:  process,
+				Packet:   packet,
+				Hostname: hostname,
 			}, nil
 		} else {
 			return statsRow, ErrIPLayerIsNil
