@@ -72,8 +72,6 @@ func ParseNetTCPRows(raw string) (rows []NetTCPRow, err error) {
 func ParseNetTCPRow(raw string) (row NetTCPRow, err error) {
 	parts := cleanSlice(strings.Split(raw, " "))
 	if len(parts) != 17 {
-		log.Println(len(parts))
-		log.Println(raw)
 		return row, ErrNetTcpInvalidRawRow
 	}
 

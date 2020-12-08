@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	ErrTCPLayerIsNil = errors.New("tcp layer is nil")
-	ErrIPLayerIsNil  = errors.New("ip layer is nil")
+	ErrTCPLayerIsNil       = errors.New("tcp layer is nil")
+	ErrIPLayerIsNil        = errors.New("ip layer is nil")
+	ErrUnableToFindProcess = errors.New("unable to find process")
 
 	hostname string
 )
@@ -54,21 +55,24 @@ func (pt *PacketTransformer) Transform(packet gopacket.Packet) (statsRow entity.
 				Packets:    1,
 			}
 			process := pt.processRepository.FindByNetworkActivity(packet)
+			if process.Id < 0 { // invalid process
+				//return statsRow, ErrUnableToFindProcess
+			}
 
 			// remove information about the unknown nodes
-			if process.CommunicationWithKnownNode {
+			if !process.CommunicationWithKnownNode {
 				if process.Sender {
-					packet.TargetIp = ""
-					packet.TargetPort = 0
+					packet.SourceIp = "unk"
+					packet.SourcePort = -1
 				} else {
-					packet.TargetIp = ""
-					packet.SourcePort = 0
+					packet.TargetIp = "unk"
+					packet.TargetPort = -1
 				}
 			}
 
 			return entity.StatsRow{
-				Process:  process,
-				Packet:   packet,
+				Process:  &process,
+				Packet:   &packet,
 				Hostname: hostname,
 			}, nil
 		} else {

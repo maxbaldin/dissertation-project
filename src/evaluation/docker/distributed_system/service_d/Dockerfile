@@ -3,6 +3,7 @@ MAINTAINER  Maksim Baldin maksim.baldin@online.liverpool.ac.uk
 
 RUN apt-get update && apt-get install -y supervisor
 RUN apt-get install -y python-pip && pip install supervisor-stdout
+RUN apt-get install libpcap-dev -y
 
 RUN mkdir -p /var/log/supervisor
 
@@ -11,7 +12,7 @@ COPY src/evaluation/cfg/service_d_supervisord.conf /etc/supervisor/conf.d/superv
 WORKDIR /service
 
 ENV GO111MODULE=on \
-    CGO_ENABLED=0 \
+    CGO_ENABLED=1 \
     GOOS=linux \
     GOARCH=amd64
 
@@ -22,5 +23,6 @@ COPY . .
 RUN ls
 
 RUN go build -o service_d src/evaluation/cmd/run_service.go
+RUN go build -o agent src/implementation/agent/agent.go
 
 CMD ["/usr/bin/supervisord"]

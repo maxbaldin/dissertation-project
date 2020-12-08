@@ -5,5 +5,4 @@ outbound_dependencies:
   - protocol: tcp
     addr: node_2_services_b_c:1235
     packet_size: 64
-    duration_in_seconds: 0
     time_between_packets_ms: 1500

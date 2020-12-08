@@ -10,19 +10,19 @@ import (
 )
 
 func TestAggregator_Aggregate(t *testing.T) {
-	aggTime := time.Millisecond * 10
-	aggregator := usecase.NewAggregator(aggTime, 10, 10)
+	aggTime := time.Second * 1
+	aggregator := usecase.NewAggregator(aggTime, 10)
 	inChan := make(chan entity.StatsRow, 10)
 
 	row1 := entity.StatsRow{
-		Process: entity.Process{
+		Process: &entity.Process{
 			Id:                         12,
 			Name:                       "one",
 			Path:                       "/var/path",
 			Sender:                     true,
 			CommunicationWithKnownNode: true,
 		},
-		Packet: entity.Packet{
+		Packet: &entity.Packet{
 			SourceIp:   "66.0.0.1",
 			SourcePort: 1233,
 			TargetIp:   "88.434.1.23",
@@ -34,14 +34,14 @@ func TestAggregator_Aggregate(t *testing.T) {
 	row1.Hash()
 
 	row2 := entity.StatsRow{
-		Process: entity.Process{
+		Process: &entity.Process{
 			Id:                         43,
 			Name:                       "two",
 			Path:                       "/var/path",
 			Sender:                     false,
 			CommunicationWithKnownNode: false,
 		},
-		Packet: entity.Packet{
+		Packet: &entity.Packet{
 			SourceIp:   "55.2.12.4",
 			SourcePort: 534,
 			TargetIp:   "77.3.1.55",
@@ -50,9 +50,9 @@ func TestAggregator_Aggregate(t *testing.T) {
 			Packets:    1,
 		},
 	}
-
 	row2.Hash()
 
+	inChan <- row1
 	inChan <- row1
 	inChan <- row1
 	inChan <- row1
@@ -67,9 +67,9 @@ func TestAggregator_Aggregate(t *testing.T) {
 	for newRow := range outChan {
 		if newRow.Process.Name == "one" {
 			cnt++
-			row2.Packet.Packets = 3
-			row2.Packet.Size = 300
-			assert.Equal(t, row2, newRow)
+			row1.Packet.Packets = 4
+			row1.Packet.Size = 400
+			assert.Equal(t, row1, newRow)
 		} else if newRow.Process.Name == "two" {
 			cnt++
 			assert.Equal(t, row2, newRow)

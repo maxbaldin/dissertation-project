@@ -39,9 +39,25 @@ func easyjsonFf084a1fDecodeGithubComMaxbaldinDissertationProjectSrcImplementatio
 		case "Hostname":
 			out.Hostname = string(in.String())
 		case "Process":
-			easyjsonFf084a1fDecodeGithubComMaxbaldinDissertationProjectSrcImplementationAgentEntity1(in, &out.Process)
+			if in.IsNull() {
+				in.Skip()
+				out.Process = nil
+			} else {
+				if out.Process == nil {
+					out.Process = new(Process)
+				}
+				easyjsonFf084a1fDecodeGithubComMaxbaldinDissertationProjectSrcImplementationAgentEntity1(in, out.Process)
+			}
 		case "Packet":
-			easyjsonFf084a1fDecodeGithubComMaxbaldinDissertationProjectSrcImplementationAgentEntity2(in, &out.Packet)
+			if in.IsNull() {
+				in.Skip()
+				out.Packet = nil
+			} else {
+				if out.Packet == nil {
+					out.Packet = new(Packet)
+				}
+				easyjsonFf084a1fDecodeGithubComMaxbaldinDissertationProjectSrcImplementationAgentEntity2(in, out.Packet)
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -64,12 +80,20 @@ func easyjsonFf084a1fEncodeGithubComMaxbaldinDissertationProjectSrcImplementatio
 	{
 		const prefix string = ",\"Process\":"
 		out.RawString(prefix)
-		easyjsonFf084a1fEncodeGithubComMaxbaldinDissertationProjectSrcImplementationAgentEntity1(out, in.Process)
+		if in.Process == nil {
+			out.RawString("null")
+		} else {
+			easyjsonFf084a1fEncodeGithubComMaxbaldinDissertationProjectSrcImplementationAgentEntity1(out, *in.Process)
+		}
 	}
 	{
 		const prefix string = ",\"Packet\":"
 		out.RawString(prefix)
-		easyjsonFf084a1fEncodeGithubComMaxbaldinDissertationProjectSrcImplementationAgentEntity2(out, in.Packet)
+		if in.Packet == nil {
+			out.RawString("null")
+		} else {
+			easyjsonFf084a1fEncodeGithubComMaxbaldinDissertationProjectSrcImplementationAgentEntity2(out, *in.Packet)
+		}
 	}
 	out.RawByte('}')
 }

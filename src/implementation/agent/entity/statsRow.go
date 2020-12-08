@@ -10,8 +10,8 @@ import (
 type StatsRow struct {
 	hash     string
 	Hostname string
-	Process  Process
-	Packet   Packet
+	Process  *Process
+	Packet   *Packet
 }
 
 func (s *StatsRow) Hash() string {

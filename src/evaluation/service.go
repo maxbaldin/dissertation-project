@@ -1,8 +1,8 @@
 package evaluation
 
 import (
-	"bufio"
 	"context"
+	"io"
 	"math/rand"
 	"net"
 	"sync"
@@ -12,26 +12,25 @@ import (
 )
 
 const (
-	ReconnectTimeout      = time.Second * 3
-	MaxBytesPerConnection = 2048
+	ReconnectInterval = time.Millisecond * 10
 )
 
 type TestService struct {
-	dependencies []OutboundDependency
-	listenAddr   string
-	logger       *log.Entry
+	dependencies      []OutboundDependency
+	listenAddr        string
+	listenConnTimeout time.Duration
+	logger            *log.Entry
 }
 
 type OutboundDependency struct {
 	Addr                           string `yaml:"addr"`
 	Protocol                       string `yaml:"protocol"`
 	PacketSize                     int    `yaml:"packet_size"`
-	DurationSeconds                int    `yaml:"duration_in_seconds"`
 	TimeBetweenPacketsMilliseconds int    `yaml:"time_between_packets_ms"`
 }
 
-func NewTestService(deps []OutboundDependency, listenAddr string, logger *log.Entry) *TestService {
-	return &TestService{dependencies: deps, listenAddr: listenAddr, logger: logger}
+func NewTestService(deps []OutboundDependency, listenAddr string, listenConnTimeout time.Duration, logger *log.Entry) *TestService {
+	return &TestService{dependencies: deps, listenConnTimeout: listenConnTimeout, listenAddr: listenAddr, logger: logger}
 }
 
 func (ts *TestService) Run(ctx context.Context) {
@@ -42,11 +41,7 @@ func (ts *TestService) Run(ctx context.Context) {
 	}
 	for _, dep := range ts.dependencies {
 		wg.Add(1)
-
 		concreteCtx := ctx
-		if dep.DurationSeconds > 0 {
-			concreteCtx, _ = context.WithTimeout(ctx, time.Second*time.Duration(dep.DurationSeconds))
-		}
 		go ts.writer(dep, concreteCtx, &wg)
 	}
 	wg.Wait()
@@ -68,22 +63,22 @@ start:
 	if needToStop {
 		return
 	}
+	ts.logger.Info("Creating TCP connection")
 	conn, err := net.Dial(dependency.Protocol, dependency.Addr)
 	if err != nil {
-		ts.logger.Warnf("Unable connect to the target service %s (%s): reconnecting", dependency.Addr, err)
-		time.Sleep(ReconnectTimeout)
+		ts.logger.Warnf("Unable connect to the target service %s (%s): sleep %s and reconnecting", dependency.Addr, err, ReconnectInterval)
+		time.Sleep(ReconnectInterval)
 		goto start
 	}
-	connBuffer := bufio.NewWriter(conn)
 
 	packet := make([]byte, dependency.PacketSize)
 	for {
 		if needToStop {
+			ts.logger.Infof("Need to stop writing")
 			return
 		}
 		rand.Read(packet)
-		ts.logger.Debugf("Sending data to %s:%s", dependency.Protocol, dependency.Addr)
-		_, err := connBuffer.Write(packet)
+		_, err := conn.Write(packet)
 		if err != nil {
 			ts.logger.Warnf("Unable write to the target service %s (%s): reconnecting", dependency.Addr, err)
 			goto start
@@ -110,27 +105,41 @@ func (ts *TestService) listen(ctx context.Context, wg *sync.WaitGroup) {
 
 	for {
 		if needToStop {
+			ts.logger.Infof("Accepting of the new connections is stopped")
 			break
 		}
+		ts.logger.Infof("Accepting new connection")
 		c, err := l.Accept()
 		if err != nil {
 			ts.logger.Warnf("Unable to accept connection %s", err)
 			continue
+		}
+		if err != nil {
+			ts.logger.Warnf("Unable to set connection deadline %s", err)
 		}
 		go ts.handleConnection(c)
 	}
 }
 
 func (ts *TestService) handleConnection(conn net.Conn) {
-	buf := make([]byte, MaxBytesPerConnection)
-	_, err := conn.Read(buf)
-	if err != nil {
-		ts.logger.Warnf("Error reading: %s", err)
-		return
+	var bytesCnt int
+	tmp := make([]byte, 256)
+	startTime := time.Now()
+	for {
+		if time.Since(startTime) > ts.listenConnTimeout {
+			ts.logger.Info("Stopping listening by timeout")
+			break
+		}
+		n, err := conn.Read(tmp)
+		bytesCnt += n
+		if err != nil {
+			if err != io.EOF {
+				ts.logger.Warnf("Read error:", err)
+			}
+			break
+		}
 	}
-	err = conn.Close()
-	if err != nil {
-		ts.logger.Warnf("Error closing: %s", err)
-	}
-	ts.logger.Debug("Connection handled")
+
+	_ = conn.Close()
+	ts.logger.Infof("Connection closed after %d bytes", bytesCnt)
 }

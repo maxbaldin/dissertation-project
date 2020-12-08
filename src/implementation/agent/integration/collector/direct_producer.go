@@ -2,6 +2,8 @@ package collector
 
 import (
 	"log"
+	"net/http"
+	"net/url"
 
 	"github.com/maxbaldin/dissertation-project/src/implementation/agent/entity"
 )
@@ -25,8 +27,10 @@ func NewDirectProducer(collectorAddr string, aggregator Aggregator, queueLen int
 		aggregatedQueue: make(chan entity.StatsRow, queueLen),
 	}
 
+	log.Println("Init handler")
 	go producer.handle()
 
+	log.Println("Init producer")
 	go producer.produce()
 
 	return producer
@@ -34,11 +38,18 @@ func NewDirectProducer(collectorAddr string, aggregator Aggregator, queueLen int
 
 func (p *DirectProducer) produce() {
 	for statsRow := range p.aggregatedQueue {
-		_, err := statsRow.MarshalJSON()
+		b, err := statsRow.MarshalJSON()
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		_, err = http.PostForm(p.collectorAddr+"/collect", url.Values{
+			"entity": {string(b)},
+		})
 		if err != nil {
 			log.Println(err)
 		}
-		log.Printf("Need to send %v", statsRow)
+		log.Println("Produce", string(b))
 	}
 }
 

@@ -30,19 +30,36 @@ func NewRepository(nodesRepository NodesRepository, updateInterval time.Duration
 	ticker := time.NewTicker(updateInterval)
 	repo := &Repository{updateTicker: ticker, nodesRepository: nodesRepository}
 
-	go func(t *time.Ticker) {
-		for range t.C {
-			err := repo.update()
+	go func(r *Repository) {
+		for range r.updateTicker.C {
+			connections, err := NewNetTCPIndex()
 			if err != nil {
 				log.Println(err)
+				continue
 			}
+			r.mu.Lock()
+			r.connectionsIndex = connections
+			r.mu.Unlock()
 		}
-	}(ticker)
+	}(repo)
 
-	return repo, repo.update()
+	go func(r *Repository) {
+		for range r.updateTicker.C {
+			processesMap, err := GetProcMap()
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			r.mu.Lock()
+			r.processesIndex = processesMap
+			r.mu.Unlock()
+		}
+	}(repo)
+
+	return repo, repo.updateAll()
 }
 
-func (r *Repository) update() error {
+func (r *Repository) updateAll() error {
 	connections, err := NewNetTCPIndex()
 	if err != nil {
 		return err
@@ -61,6 +78,8 @@ func (r *Repository) update() error {
 }
 
 func (r *Repository) FindByNetworkActivity(packet entity.Packet) (proc entity.Process) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	srcInfo, srcInfoExist := r.connectionsIndex.LookupSource(packet.SourceIp, packet.SourcePort)
 	targetInfo, targetInfoExist := r.connectionsIndex.LookupSource(packet.TargetIp, packet.TargetPort)
 

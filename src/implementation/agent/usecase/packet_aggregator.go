@@ -16,9 +16,8 @@ type Aggregator struct {
 	mu          sync.Mutex
 }
 
-func NewAggregator(flushInterval time.Duration, startBuffLength int, minSendCnt int) *Aggregator {
+func NewAggregator(flushInterval time.Duration, startBuffLength int) *Aggregator {
 	aggregator := &Aggregator{
-		minSendCnt:  minSendCnt,
 		buffer:      make(map[string]*entity.StatsRow, startBuffLength),
 		flushTicker: time.NewTicker(flushInterval),
 	}
@@ -28,16 +27,18 @@ func NewAggregator(flushInterval time.Duration, startBuffLength int, minSendCnt 
 			if aggregator.outChan == nil {
 				continue
 			}
-			log.Println("Flushing aggregates")
-			if len(aggregator.buffer) < aggregator.minSendCnt {
-				continue
-			}
 			aggregator.mu.Lock()
-			for _, aggregatedRow := range aggregator.buffer {
-				aggregator.outChan <- *aggregatedRow
+			if len(aggregator.buffer) > 0 {
+				log.Println("Flushing aggregates")
+				for _, aggregatedRow := range aggregator.buffer {
+					aggregator.outChan <- *aggregatedRow
+				}
+				log.Println("Flushing aggregates finished")
+				oldBuffLen := len(aggregator.buffer)
+				aggregator.buffer = make(map[string]*entity.StatsRow, oldBuffLen/2)
+			} else {
+				log.Println("No aggregates to flush")
 			}
-			oldBuffLen := len(aggregator.buffer)
-			aggregator.buffer = make(map[string]*entity.StatsRow, oldBuffLen)
 			aggregator.mu.Unlock()
 		}
 	}()
@@ -49,13 +50,13 @@ func (a *Aggregator) Aggregate(in chan entity.StatsRow, out chan entity.StatsRow
 	a.outChan = out
 	for row := range in {
 		a.mu.Lock()
-		log.Println("Aggregating..")
 		rowHash := row.Hash()
 		if _, exist := a.buffer[rowHash]; exist {
-			a.buffer[rowHash].Packet.Size = row.Packet.Size
-			a.buffer[rowHash].Packet.Packets += 1
+			a.buffer[rowHash].Packet.Size = a.buffer[rowHash].Packet.Size + row.Packet.Size
+			a.buffer[rowHash].Packet.Packets = a.buffer[rowHash].Packet.Packets + 1
 		} else {
-			a.buffer[rowHash] = &row
+			rowPtr := row
+			a.buffer[rowHash] = &rowPtr
 		}
 		a.mu.Unlock()
 	}

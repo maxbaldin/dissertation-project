@@ -4,7 +4,6 @@ import (
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
 	"github.com/maxbaldin/dissertation-project/src/implementation/agent/entity"
-	log "github.com/sirupsen/logrus"
 )
 
 type Listener struct {
@@ -30,7 +29,8 @@ func (l *Listener) Listen(handle *pcap.Handle) {
 	for packet := range packetSource.Packets() {
 		statsRow, err := l.transformer.Transform(packet)
 		if err != nil {
-			log.Info(err)
+			//log.Info(err)
+			continue
 		}
 		l.producer.Produce(statsRow)
 	}
