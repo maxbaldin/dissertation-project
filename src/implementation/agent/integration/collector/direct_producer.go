@@ -28,9 +28,9 @@ func NewDirectProducer(collectorAddr string, aggregator Aggregator, queueLen int
 	}
 
 	log.Println("Init handler")
-	go producer.handle()
+	go producer.aggregator.Aggregate(producer.inQueue, producer.aggregatedQueue)
 
-	log.Println("Init producer")
+	log.Println("Init producers")
 	go producer.produce()
 
 	return producer
@@ -49,15 +49,11 @@ func (p *DirectProducer) produce() {
 		if err != nil {
 			log.Println(err)
 		}
-		log.Println("Produce", string(b))
 	}
 }
 
-func (p *DirectProducer) handle() {
-	p.aggregator.Aggregate(p.inQueue, p.aggregatedQueue)
-}
-
 func (p *DirectProducer) Produce(packet entity.StatsRow) {
+	log.Println(len(p.inQueue), len(p.aggregatedQueue))
 	p.inQueue <- packet
 }
 

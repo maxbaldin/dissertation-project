@@ -3,7 +3,6 @@ package usecase
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net"
 	"net/http"
 	"time"
@@ -25,7 +24,6 @@ func NewRequestTransformer() *RequestTransformer {
 
 func (rt *RequestTransformer) Transform(r *http.Request) (e entity.Traffic, err error) {
 	input := r.PostFormValue("entity")
-	log.Println("input", input)
 	if input == "" {
 		return e, ErrEmptyEntityField
 	}
@@ -39,12 +37,21 @@ func (rt *RequestTransformer) Transform(r *http.Request) (e entity.Traffic, err 
 	e.Date = time.Now()
 	e.ProcessName = row.Process.Name
 	e.Hostname = row.Hostname
+
 	e.SourceIP = net.ParseIP(row.Packet.SourceIp)
+	if e.SourceIP == nil {
+		e.SourceIP = net.ParseIP("0.0.0.0")
+	}
 	e.SourcePort = row.Packet.SourcePort
+
 	e.TargetIp = net.ParseIP(row.Packet.TargetIp)
+	if e.TargetIp == nil {
+		e.TargetIp = net.ParseIP("0.0.0.0")
+	}
 	e.TargetPort = row.Packet.TargetPort
-	e.PacketsCnt = row.Packet.Size
+
+	e.PacketsCnt = row.Packet.Packets
 	e.Size = row.Packet.Size
 
-	return entity.Traffic{}, nil
+	return e, nil
 }

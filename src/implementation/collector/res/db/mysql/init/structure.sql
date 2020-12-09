@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `inbound_traffic` (
              `process_name` varchar(30) NOT NULL,
              `hostname` varchar(30) NOT NULL,
              `source_ip` varbinary(16) NOT NULL,
-             `source_port` int unsigned DEFAULT NULL,
+             `source_port` int unsigned NOT NULL,
              `target_ip` varbinary(16) NOT NULL,
              `target_port` int unsigned NOT NULL,
              `packets` int unsigned NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `outbound_traffic` (
              `process_name` varchar(30) NOT NULL,
              `hostname` varchar(30) NOT NULL,
              `source_ip` varbinary(16) NOT NULL,
-             `source_port` int unsigned DEFAULT NULL,
+             `source_port` int unsigned NOT NULL,
              `target_ip` varbinary(16) NOT NULL,
              `target_port` int unsigned NOT NULL,
              `packets` int unsigned NOT NULL,
@@ -34,11 +34,14 @@ CREATE TABLE IF NOT EXISTS `outbound_traffic` (
            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE OR REPLACE VIEW `known_nodes` AS
-SELECT DISTINCT(ip) as ip
+SELECT ip
 FROM (
-         SELECT source_ip as ip
+         SELECT inet_ntoa(source_ip) as ip
          FROM collector.outbound_traffic
+         GROUP BY source_ip
          UNION
-         SELECT target_ip as ip
+         SELECT inet_ntoa(target_ip) as ip
          FROM collector.inbound_traffic
-     ) as nodes;
+         GROUP BY target_ip
+     ) as nodes
+GROUP BY ip;

@@ -20,5 +20,5 @@ func NewKnownNodesController(repository KnownNodesRepository) *KnownNodesControl
 }
 
 func (k *KnownNodesController) Handle(w http.ResponseWriter, r *http.Request) {
-	_, _ = w.Write([]byte(strings.Join(k.repository.Get(), "\n")))
+	_, _ = w.Write([]byte(strings.Join(k.repository.Get(), ",")))
 }

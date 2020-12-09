@@ -29,7 +29,7 @@ func NewAggregator(flushInterval time.Duration, startBuffLength int) *Aggregator
 			}
 			aggregator.mu.Lock()
 			if len(aggregator.buffer) > 0 {
-				log.Println("Flushing aggregates")
+				log.Printf("Flushing aggregates (%d elements)", len(aggregator.buffer))
 				for _, aggregatedRow := range aggregator.buffer {
 					aggregator.outChan <- *aggregatedRow
 				}

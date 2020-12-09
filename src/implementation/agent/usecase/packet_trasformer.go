@@ -3,7 +3,6 @@ package usecase
 import (
 	"errors"
 	"os"
-	"strconv"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -38,8 +37,8 @@ func (pt *PacketTransformer) Transform(packet gopacket.Packet) (statsRow entity.
 	tcpLayer := packet.Layer(layers.LayerTypeTCP)
 	if tcpLayer != nil {
 		tcp, _ := tcpLayer.(*layers.TCP)
-		sourcePort, _ := strconv.Atoi(tcp.SrcPort.String())
-		targetPort, _ := strconv.Atoi(tcp.DstPort.String())
+		sourcePort := int(tcp.SrcPort)
+		targetPort := int(tcp.DstPort)
 
 		ipLayer := packet.Layer(layers.LayerTypeIPv4)
 		if ipLayer != nil {
@@ -56,17 +55,21 @@ func (pt *PacketTransformer) Transform(packet gopacket.Packet) (statsRow entity.
 			}
 			process := pt.processRepository.FindByNetworkActivity(packet)
 			if process.Id < 0 { // invalid process
-				//return statsRow, ErrUnableToFindProcess
+				return statsRow, ErrUnableToFindProcess
 			}
 
-			// remove information about the unknown nodes
+			// inbound: source(remote):target(local)
+			// outbound: source(local):target(remote)
+			// remove extra information in case of unknown remotes
 			if !process.CommunicationWithKnownNode {
 				if process.Sender {
-					packet.SourceIp = "unk"
-					packet.SourcePort = -1
-				} else {
 					packet.TargetIp = "unk"
-					packet.TargetPort = -1
+					packet.TargetPort = 0
+					packet.SourcePort = 0
+				} else {
+					packet.SourceIp = "unk"
+					packet.SourcePort = 0
+					packet.TargetPort = 0
 				}
 			}
 

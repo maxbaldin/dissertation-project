@@ -1,3 +1,3 @@
 service:
   name: service_d
-  listen_addr: 0.0.0.0:1234
+  listen_addr: 0.0.0.0:9090

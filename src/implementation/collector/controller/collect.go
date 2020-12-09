@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/maxbaldin/dissertation-project/src/implementation/collector/entity"
@@ -32,11 +33,13 @@ func NewCollectController(repository TrafficRepository, transformer Transformer)
 func (c *CollectController) Handle(w http.ResponseWriter, r *http.Request) {
 	trafficEntity, err := c.transformer.Transform(r)
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	err = c.repository.Persist(trafficEntity)
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

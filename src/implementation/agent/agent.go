@@ -2,6 +2,7 @@ package main
 
 import (
 	"net"
+	"net/http"
 	"sync"
 	"time"
 
@@ -14,8 +15,9 @@ import (
 )
 
 func main() {
-	interfaces, err := net.Interfaces()
-	checkErr(err)
+	log.Println("Initializing...")
+
+	http.DefaultClient.Timeout = time.Millisecond * 10
 
 	nodesRepository, err := collector.NewNodeRepository("http://collector/known_nodes", time.Second)
 	checkErr(err)
@@ -26,21 +28,29 @@ func main() {
 
 	transformer := usecase.NewPacketTransformer(processRepository)
 
-	aggregator := usecase.NewAggregator(time.Second*5, 1000)
-	producer := collector.NewDirectProducer("http://collector", aggregator, 1000)
+	aggregator := usecase.NewAggregator(time.Second*1, 100000)
+	producer := collector.NewDirectProducer("http://collector", aggregator, 100000)
 	listener := network.NewListener(transformer, producer)
 
 	var wg sync.WaitGroup
+
+	interfaces, err := net.Interfaces()
+	checkErr(err)
+
 	for _, networkInterface := range interfaces {
 		wg.Add(1)
-		handle, err := pcap.OpenLive(networkInterface.Name, 65536, true, pcap.BlockForever)
-		if err != nil {
-			log.Warn(err)
-			continue
-		}
-		err = handle.SetBPFFilter("tcp")
-		checkErr(err)
-		go listener.Listen(handle)
+		go func(interfaceName string, snapshotLength int) {
+			log.Printf("Attaching to %s", interfaceName)
+			handle, err := pcap.OpenLive(interfaceName, int32(snapshotLength), false, pcap.BlockForever)
+			if err != nil {
+				log.Warn(err)
+				return
+			}
+
+			err = handle.SetBPFFilter("tcp")
+			checkErr(err)
+			listener.Listen(handle, interfaceName, snapshotLength)
+		}(networkInterface.Name, 1024*1024*128)
 	}
 	wg.Wait()
 }

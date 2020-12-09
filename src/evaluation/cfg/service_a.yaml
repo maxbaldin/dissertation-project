@@ -1,8 +1,8 @@
 service:
   name: service_a
-  listen_addr: 0.0.0.0:1234
+  listen_addr: 0.0.0.0:9090
 outbound_dependencies:
   - protocol: tcp
-    addr: node_2_services_b_c:1234
+    addr: node_2_services_b_c:9090
     packet_size: 256
     time_between_packets_ms: 1

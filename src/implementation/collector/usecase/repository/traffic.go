@@ -7,7 +7,7 @@ import (
 	"github.com/maxbaldin/dissertation-project/src/implementation/collector/usecase/utils"
 )
 
-const YMDFormat = "02-01-2006"
+const YMDFormat = "2006-01-02"
 
 type TrafficDB interface {
 	InsertOrUpdateTraffic(inbound bool, date string, hour int, processName, hostname string, sourceIp, sourcePort, targetIp, targetPort int, packets, size uint) error

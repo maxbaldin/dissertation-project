@@ -26,7 +26,7 @@ func main() {
 
 	http.HandleFunc("/collect", collectController.Handle)
 
-	knownNodesRepository, err := repository.NewKnownNodesRepository(mysqlDB, time.Second*5)
+	knownNodesRepository, err := repository.NewKnownNodesRepository(mysqlDB, time.Second*1)
 	if err != nil {
 		panic(err)
 	}

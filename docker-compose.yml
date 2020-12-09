@@ -1,34 +1,10 @@
 version: '3'
 services:
-  node_1_service_a:
-    restart: always
-    build:
-      context: .
-      dockerfile: ./src/evaluation/docker/distributed_system/service_a/Dockerfile
-  node_2_services_b_c:
-    restart: always
-    build:
-      context: .
-      dockerfile: ./src/evaluation/docker/distributed_system/service_b_c/Dockerfile
-    expose:
-      - 1234
-  node_3_services_d:
-    restart: always
-    build:
-      context: .
-      dockerfile: ./src/evaluation/docker/distributed_system/service_d/Dockerfile
-    expose:
-      - 1234
-  collector:
-    restart: always
-    build:
-      context: .
-      dockerfile: ./src/evaluation/docker/collector/Dockerfile
-    ports:
-      - "8080:80"
   mysql:
     image: mysql
     restart: always
+    cap_add:
+      - SYS_NICE
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: collector
@@ -37,3 +13,43 @@ services:
     volumes:
       - ./src/implementation/collector/res/db/mysql/data:/var/lib/mysql
       - ./src/implementation/collector/res/db/mysql/init:/docker-entrypoint-initdb.d/:ro
+  node_1_service_a:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./src/evaluation/docker/distributed_system/service_a/Dockerfile
+    depends_on:
+      - node_2_services_b_c
+      - collector
+    expose:
+      - 9090
+  node_2_services_b_c:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./src/evaluation/docker/distributed_system/service_b_c/Dockerfile
+    depends_on:
+      - node_3_services_d
+      - collector
+    expose:
+      - 9090
+  node_3_services_d:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./src/evaluation/docker/distributed_system/service_d/Dockerfile
+    depends_on:
+      - collector
+    expose:
+      - 9090
+  collector:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./src/evaluation/docker/collector/Dockerfile
+    expose:
+      - 80
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql

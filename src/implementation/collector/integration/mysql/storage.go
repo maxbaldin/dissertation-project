@@ -25,7 +25,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON DUPLICATE KEY UPDATE packets = packets + VALUES(packets),
                         size    = size + VALUES(size);`
 
-const knownNodesStatement = `SELECT GROUP_CONCAT(ip, ',') as ips FROM known_nodes`
+const knownNodesStatement = `SELECT GROUP_CONCAT(ip) as ips FROM known_nodes`
 
 type Storage struct {
 	mysql                      *sql.DB
