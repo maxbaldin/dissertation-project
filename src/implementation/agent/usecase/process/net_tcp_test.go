@@ -23,7 +23,7 @@ func TestParseNetTCPRow(t *testing.T) {
 		},
 		ConnectionState: 1,
 		Queue: process.NetTCPRowQueue{
-			Transmission: 150,
+			Transmission: 336,
 			Receive:      1,
 		},
 		Timer: process.NetTCPRowTimer{

@@ -3,7 +3,7 @@ package process
 import (
 	"encoding/hex"
 	"errors"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net"
 	"strconv"
 	"strings"
@@ -77,67 +77,67 @@ func ParseNetTCPRow(raw string) (row NetTCPRow, err error) {
 
 	row.NumberOfEntry, err = strconv.Atoi(strings.TrimRight(parts[0], ":"))
 	if err != nil {
-		log.Println("Wrong NumberOfEntry", parts[0])
+		log.Debugf("Wrong NumberOfEntry", parts[0])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.Local, err = parseAddress(parts[1])
 	if err != nil {
-		log.Println("Wrong Local", parts[1])
+		log.Debugf("Wrong Local", parts[1])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.Remote, err = parseAddress(parts[2])
 	if err != nil {
-		log.Println("Wrong Remote", parts[2])
+		log.Debugf("Wrong Remote", parts[2])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.ConnectionState, err = hex2int(parts[3])
 	if err != nil {
-		log.Println("Wrong ConnectionState", parts[3])
+		log.Debugf("Wrong ConnectionState", parts[3])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.Queue, err = parseQueue(parts[4])
 	if err != nil {
-		log.Println("Wrong Queue", parts[4])
+		log.Debugf("Wrong Queue", parts[4])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.Timer, err = parseTimer(parts[5])
 	if err != nil {
-		log.Println("Wrong Timer", parts[5])
+		log.Debugf("Wrong Timer", parts[5])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.NumOfUnRecoveredRTOTimeouts, err = strconv.Atoi(parts[6])
 	if err != nil {
-		log.Println("Wrong NumOfUnRecoveredRTOTimeouts", parts[6])
+		log.Debugf("Wrong NumOfUnRecoveredRTOTimeouts", parts[6])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.UID, err = strconv.Atoi(parts[7])
 	if err != nil {
-		log.Println("Wrong UID", parts[7])
+		log.Debugf("Wrong UID", parts[7])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.UnansweredZeroWinProbes, err = strconv.Atoi(parts[8])
 	if err != nil {
-		log.Println("Wrong UnansweredZeroWinProbes", parts[8])
+		log.Debugf("Wrong UnansweredZeroWinProbes", parts[8])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.Inode, err = strconv.Atoi(parts[9])
 	if err != nil {
-		log.Println("Wrong Inode", parts[9])
+		log.Debugf("Wrong Inode", parts[9])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.SocketReferenceCount, err = strconv.Atoi(parts[10])
 	if err != nil {
-		log.Println("Wrong SocketReferenceCount", parts[10])
+		log.Debugf("Wrong SocketReferenceCount", parts[10])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
@@ -145,31 +145,31 @@ func ParseNetTCPRow(raw string) (row NetTCPRow, err error) {
 
 	row.RetransmitTimeout, err = strconv.Atoi(parts[12])
 	if err != nil {
-		log.Println("Wrong RetransmitTimeout", parts[12])
+		log.Debugf("Wrong RetransmitTimeout", parts[12])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.PredictedTickOfSoftClock, err = strconv.Atoi(parts[13])
 	if err != nil {
-		log.Println("Wrong PredictedTickOfSoftClock", parts[13])
+		log.Debugf("Wrong PredictedTickOfSoftClock", parts[13])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.Ack, err = strconv.Atoi(parts[14])
 	if err != nil {
-		log.Println("Wrong Ack", parts[14])
+		log.Debugf("Wrong Ack", parts[14])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.SendingCongestionWindow, err = strconv.Atoi(parts[15])
 	if err != nil {
-		log.Println("Wrong SendingCongestionWindow", parts[15])
+		log.Debugf("Wrong SendingCongestionWindow", parts[15])
 		return row, ErrNetTcpUnableToParseRow
 	}
 
 	row.SlowStartSizeThreshold, err = strconv.Atoi(parts[16])
 	if err != nil {
-		log.Println("Wrong SlowStartSizeThreshold", parts[16])
+		log.Debugf("Wrong SlowStartSizeThreshold", parts[16])
 		return row, ErrNetTcpUnableToParseRow
 	}
 

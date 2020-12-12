@@ -1,19 +1,7 @@
 version: '3'
 services:
-  mysql:
-    image: mysql
-    restart: always
-    cap_add:
-      - SYS_NICE
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: collector
-    ports:
-      - "3305:3306"
-    volumes:
-      - ./src/implementation/collector/res/db/mysql/data:/var/lib/mysql
-      - ./src/implementation/collector/res/db/mysql/init:/docker-entrypoint-initdb.d/:ro
   node_1_service_a:
+    container_name: node_1_service_a
     restart: always
     build:
       context: .
@@ -22,8 +10,9 @@ services:
       - node_2_services_b_c
       - collector
     expose:
-      - 9090
+      - "9090"
   node_2_services_b_c:
+    container_name: node_2_services_b_c
     restart: always
     build:
       context: .
@@ -32,8 +21,9 @@ services:
       - node_3_services_d
       - collector
     expose:
-      - 9090
+      - "9090"
   node_3_services_d:
+    container_name: node_3_services_d
     restart: always
     build:
       context: .
@@ -41,15 +31,42 @@ services:
     depends_on:
       - collector
     expose:
-      - 9090
+      - "9090"
   collector:
+    container_name: collector
     restart: always
     build:
       context: .
       dockerfile: ./src/evaluation/docker/collector/Dockerfile
     expose:
-      - 80
-    ports:
-      - "8080:80"
+      - "80"
     depends_on:
       - mysql
+  ui:
+    container_name: ui
+    restart: always
+    build:
+      context: .
+      dockerfile: ./src/evaluation/docker/ui/Dockerfile
+    expose:
+      - "80"
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+  mysql:
+    container_name: mysql
+    image: mysql
+    restart: always
+    cap_add:
+      - SYS_NICE
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: collector
+    expose:
+      - "3306"
+    ports:
+      - "3305:3306"
+    volumes:
+      - ./src/implementation/collector/res/db/mysql/data:/var/lib/mysql
+      - ./src/implementation/collector/res/db/mysql/init:/docker-entrypoint-initdb.d/:ro

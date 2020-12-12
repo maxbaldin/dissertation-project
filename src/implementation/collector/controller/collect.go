@@ -2,13 +2,18 @@ package controller
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/maxbaldin/dissertation-project/src/implementation/collector/entity"
 )
 
-const SuccessResponseReply = "ok"
+const (
+	StateReportingInterval = time.Second * 5
+	SuccessResponseReply   = "ok"
+)
 
 type TrafficRepository interface {
 	Persist(row entity.Traffic) error
@@ -19,29 +24,46 @@ type Transformer interface {
 }
 
 type CollectController struct {
-	repository  TrafficRepository
-	transformer Transformer
+	collectedItems int
+	errorItems     int
+	repository     TrafficRepository
+	transformer    Transformer
 }
 
 func NewCollectController(repository TrafficRepository, transformer Transformer) *CollectController {
-	return &CollectController{
+	controller := &CollectController{
 		repository:  repository,
 		transformer: transformer,
 	}
+
+	go func() {
+		for range time.NewTicker(StateReportingInterval).C {
+			log.Infof(
+				"Collected %d, Rejected %d",
+				controller.collectedItems,
+				controller.errorItems,
+			)
+		}
+	}()
+
+	return controller
 }
 
 func (c *CollectController) Handle(w http.ResponseWriter, r *http.Request) {
 	trafficEntity, err := c.transformer.Transform(r)
 	if err != nil {
-		log.Println(err)
+		c.errorItems += 1
+		log.Warn(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	err = c.repository.Persist(trafficEntity)
 	if err != nil {
-		log.Println(err)
+		c.errorItems += 1
+		log.Warn(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	c.collectedItems += 1
 	_, _ = fmt.Fprint(w, SuccessResponseReply)
 }

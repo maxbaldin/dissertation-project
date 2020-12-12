@@ -1,15 +1,21 @@
 package network
 
 import (
+	"time"
+
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
 	"github.com/maxbaldin/dissertation-project/src/implementation/agent/entity"
 	log "github.com/sirupsen/logrus"
 )
 
+const StateReportingInterval = time.Second * 5
+
 type Listener struct {
-	transformer PacketTransformer
-	producer    PacketProducer
+	transformErrors int
+	transformOKs    int
+	transformer     PacketTransformer
+	producer        PacketProducer
 }
 
 type PacketProducer interface {
@@ -21,7 +27,17 @@ type PacketTransformer interface {
 }
 
 func NewListener(transformer PacketTransformer, producer PacketProducer) *Listener {
-	return &Listener{transformer: transformer, producer: producer}
+	listener := &Listener{transformer: transformer, producer: producer}
+	go func() {
+		for range time.NewTicker(StateReportingInterval).C {
+			log.Infof(
+				"Transformation errors %d, Success transformations %d",
+				listener.transformErrors,
+				listener.transformOKs,
+			)
+		}
+	}()
+	return listener
 }
 
 func (l *Listener) Listen(handle *pcap.Handle, interfaceName string, maxLen int) {
@@ -30,11 +46,11 @@ func (l *Listener) Listen(handle *pcap.Handle, interfaceName string, maxLen int)
 	for packet := range packetSource.Packets() {
 		statsRow, err := l.transformer.Transform(packet)
 		if err != nil {
-			log.Info(err)
+			l.transformErrors += 1
 			continue
 		}
-		log.Println("Got a packet!")
+		l.transformOKs += 1
 		l.producer.Produce(statsRow)
 	}
-	log.Printf("End of listening of the network interface %s", interfaceName)
+	log.Infof("End of listening of the network interface %s", interfaceName)
 }

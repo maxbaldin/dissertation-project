@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"log"
-
 	"github.com/maxbaldin/dissertation-project/src/implementation/collector/entity"
 	"github.com/maxbaldin/dissertation-project/src/implementation/collector/usecase/utils"
 )
@@ -24,7 +22,6 @@ func NewTrafficRepository(db TrafficDB) *TrafficRepository {
 }
 
 func (tr *TrafficRepository) Persist(row entity.Traffic) error {
-	log.Println("Persist", row)
 	return tr.db.InsertOrUpdateTraffic(
 		row.Inbound,
 		row.Date.Format(YMDFormat),

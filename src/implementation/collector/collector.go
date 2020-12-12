@@ -1,9 +1,12 @@
 package main
 
 import (
-	"log"
 	"net/http"
+	"os"
 	"time"
+
+	"github.com/maxbaldin/dissertation-project/src/implementation/collector/entity"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/maxbaldin/dissertation-project/src/implementation/collector/controller"
 	"github.com/maxbaldin/dissertation-project/src/implementation/collector/integration/mysql"
@@ -12,11 +15,14 @@ import (
 )
 
 func main() {
+	log.Info("Initializing...")
+
+	cfg := config()
 
 	idxController := controller.NewIndex()
 	http.HandleFunc("/", idxController.Handle)
 
-	mysqlDB, err := mysql.New("collector:!VB3{&uC6uwA9M#P@tcp(mysql:3306)/collector")
+	mysqlDB, err := mysql.New(cfg.Integration.Db.ConnectionString)
 	if err != nil {
 		panic(err)
 	}
@@ -26,13 +32,29 @@ func main() {
 
 	http.HandleFunc("/collect", collectController.Handle)
 
-	knownNodesRepository, err := repository.NewKnownNodesRepository(mysqlDB, time.Second*1)
+	knownNodesRepository, err := repository.NewKnownNodesRepository(
+		mysqlDB,
+		time.Duration(cfg.KnownNodes.UpdateIntervalSec)*time.Second,
+	)
 	if err != nil {
 		panic(err)
 	}
 	knownNodesController := controller.NewKnownNodesController(knownNodesRepository)
 	http.HandleFunc("/known_nodes", knownNodesController.Handle)
 
-	log.Println("Application is ready")
-	log.Fatal(http.ListenAndServe(":80", nil))
+	log.Info("Application is ready")
+	log.Fatal(http.ListenAndServe(cfg.Server.ListenAddr, nil))
+}
+
+func config() *entity.Config {
+	var cfg entity.Config
+	if cfgPath, exist := os.LookupEnv("COLLECTOR_CFG"); !exist {
+		panic("you pass path to the config file in 'COLLECTOR_CFG' environment variable")
+	} else {
+		err := cfg.FromFile(cfgPath)
+		if err != nil {
+			panic(err)
+		}
+		return &cfg
+	}
 }

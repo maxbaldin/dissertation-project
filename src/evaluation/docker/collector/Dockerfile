@@ -8,7 +8,8 @@ WORKDIR /collector
 ENV GO111MODULE=on \
     CGO_ENABLED=0 \
     GOOS=linux \
-    GOARCH=amd64
+    GOARCH=amd64 \
+    COLLECTOR_CFG=/collector/src/implementation/collector/cfg/collector.yaml
 
 
 # Copy go mod and sum files

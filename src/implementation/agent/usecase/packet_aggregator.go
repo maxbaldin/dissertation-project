@@ -1,9 +1,10 @@
 package usecase
 
 import (
-	"log"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/maxbaldin/dissertation-project/src/implementation/agent/entity"
 )
@@ -29,15 +30,15 @@ func NewAggregator(flushInterval time.Duration, startBuffLength int) *Aggregator
 			}
 			aggregator.mu.Lock()
 			if len(aggregator.buffer) > 0 {
-				log.Printf("Flushing aggregates (%d elements)", len(aggregator.buffer))
+				log.Debugf("Flushing aggregates (%d elements)", len(aggregator.buffer))
 				for _, aggregatedRow := range aggregator.buffer {
 					aggregator.outChan <- *aggregatedRow
 				}
-				log.Println("Flushing aggregates finished")
+				log.Debug("Flushing aggregates finished")
 				oldBuffLen := len(aggregator.buffer)
 				aggregator.buffer = make(map[string]*entity.StatsRow, oldBuffLen/2)
 			} else {
-				log.Println("No aggregates to flush")
+				log.Debug("No aggregates to flush")
 			}
 			aggregator.mu.Unlock()
 		}

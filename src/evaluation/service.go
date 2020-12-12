@@ -26,6 +26,7 @@ type OutboundDependency struct {
 	Addr                           string `yaml:"addr"`
 	Protocol                       string `yaml:"protocol"`
 	PacketSize                     int    `yaml:"packet_size"`
+	TotalTransferSize              int    `yaml:"total_size"`
 	TimeBetweenPacketsMilliseconds int    `yaml:"time_between_packets_ms"`
 }
 
@@ -37,7 +38,7 @@ func (ts *TestService) Run(ctx context.Context) {
 	var wg sync.WaitGroup
 	if ts.listenAddr != "" {
 		wg.Add(1)
-		go ts.listen(ctx, &wg)
+		go ts.listener(ctx, &wg)
 	}
 	for _, dep := range ts.dependencies {
 		wg.Add(1)
@@ -53,6 +54,7 @@ func (ts *TestService) writer(dependency OutboundDependency, ctx context.Context
 	}()
 
 	var needToStop bool
+	var sentBytes int
 
 	go func() {
 		<-ctx.Done()
@@ -63,13 +65,14 @@ start:
 	if needToStop {
 		return
 	}
-	ts.logger.Info("Creating TCP connection")
+	ts.logger.Info("Creating new TCP connection")
 	conn, err := net.Dial(dependency.Protocol, dependency.Addr)
 	if err != nil {
 		ts.logger.Warnf("Unable connect to the target service %s (%s): sleep %s and reconnecting", dependency.Addr, err, ReconnectInterval)
 		time.Sleep(ReconnectInterval)
 		goto start
 	}
+	ts.logger.Info("Created new TCP connection")
 
 	packet := make([]byte, dependency.PacketSize)
 	for {
@@ -80,14 +83,19 @@ start:
 		rand.Read(packet)
 		_, err := conn.Write(packet)
 		if err != nil {
-			ts.logger.Warnf("Unable write to the target service %s (%s): reconnecting", dependency.Addr, err)
+			ts.logger.Debugf("Reconnecting with %s (%s)", dependency.Addr, err)
 			goto start
+		}
+		sentBytes += dependency.PacketSize
+		if dependency.TotalTransferSize > 0 && sentBytes >= dependency.TotalTransferSize {
+			ts.logger.Infof("Stopping writing, reached the limit %d bytes", sentBytes)
+			break
 		}
 		time.Sleep(time.Millisecond * time.Duration(dependency.TimeBetweenPacketsMilliseconds))
 	}
 }
 
-func (ts *TestService) listen(ctx context.Context, wg *sync.WaitGroup) {
+func (ts *TestService) listener(ctx context.Context, wg *sync.WaitGroup) {
 	var needToStop bool
 	defer wg.Done()
 
@@ -113,9 +121,6 @@ func (ts *TestService) listen(ctx context.Context, wg *sync.WaitGroup) {
 		if err != nil {
 			ts.logger.Warnf("Unable to accept connection %s", err)
 			continue
-		}
-		if err != nil {
-			ts.logger.Warnf("Unable to set connection deadline %s", err)
 		}
 		go ts.handleConnection(c)
 	}

@@ -1,9 +1,10 @@
 package repository
 
 import (
-	"log"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type KnownNodesDB interface {
@@ -25,7 +26,7 @@ func NewKnownNodesRepository(db KnownNodesDB, updateInterval time.Duration) (*Kn
 		for range t.C {
 			err := repo.update()
 			if err != nil {
-				log.Println(err)
+				log.Warn(err)
 			}
 		}
 	}(ticker)

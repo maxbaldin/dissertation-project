@@ -1,0 +1,7 @@
+server:
+  listen_addr: 0.0.0.0:80
+known_nodes:
+  update_interval_sec: 1
+integration:
+  db:
+    connection_string: collector:!VB3{&uC6uwA9M#P@tcp(mysql:3306)/collector

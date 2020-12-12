@@ -1,9 +1,10 @@
 package process
 
 import (
-	"log"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/maxbaldin/dissertation-project/src/implementation/agent/entity"
 )
@@ -34,7 +35,7 @@ func NewRepository(nodesRepository NodesRepository, updateInterval time.Duration
 		for range r.updateTicker.C {
 			connections, err := NewNetTCPIndex()
 			if err != nil {
-				log.Println(err)
+				log.Warn(err)
 				continue
 			}
 			r.mu.Lock()
@@ -47,7 +48,7 @@ func NewRepository(nodesRepository NodesRepository, updateInterval time.Duration
 		for range r.updateTicker.C {
 			processesMap, err := GetProcMap()
 			if err != nil {
-				log.Println(err)
+				log.Warn(err)
 				continue
 			}
 			r.mu.Lock()

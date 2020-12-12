@@ -2,6 +2,8 @@ CREATE DATABASE IF NOT EXISTS collector;
 CREATE USER 'collector'@'%' IDENTIFIED BY '!VB3{&uC6uwA9M#P';
 GRANT ALL PRIVILEGES ON collector.* TO 'collector'@'%';
 
+CREATE USER 'ui'@'%' IDENTIFIED BY 'F=bUG4r}NqtA#!Se';
+GRANT SELECT ON collector.* TO 'ui'@'%';
 
 CREATE TABLE IF NOT EXISTS `inbound_traffic` (
              `date` date NOT NULL,

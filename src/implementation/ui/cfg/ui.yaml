@@ -1,0 +1,6 @@
+server:
+  listen_addr: 0.0.0.0:80
+  serve_folder: ./src/implementation/ui/res/frontend
+integration:
+  db:
+    connection_string: ui:F=bUG4r}NqtA#!Se@tcp(mysql:3306)/collector

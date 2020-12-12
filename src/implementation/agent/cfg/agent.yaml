@@ -1,10 +1,21 @@
+max_cores: 2
 network:
   pcap:
+    snapshot_length: 65536
     bff_filter: tcp
-process:
-  update_interval_sec: 5
 integration:
+  http:
+    default_timeout_ms: 500
+  process:
+    repository:
+      update_interval_ms: 1
   collector:
-    url: http://adasd
-    queue_len: 1000
-    known_nodes_update_interval_sec: 5
+    producer:
+      url: http://collector/collect
+      queue_length: 1000
+    aggregator:
+      initial_buffer_length: 1000
+      flush_interval_sec: 1
+    known_nodes:
+      url: http://collector/known_nodes
+      update_interval_sec: 1
