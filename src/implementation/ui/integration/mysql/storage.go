@@ -2,10 +2,13 @@ package mysql
 
 import (
 	"database/sql"
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/maxbaldin/dissertation-project/src/implementation/ui/entity"
 )
+
+const LastHoursCnt = 2
 
 const graphDataSQL = `SELECT outbound.hostname     as from_hostname,
        outbound.process_name as from_service,
@@ -21,8 +24,8 @@ FROM inbound_traffic inbound
                  inbound.source_ip = outbound.source_ip AND
                  inbound.hour = outbound.hour
                   AND inbound.target_ip > 0 AND outbound.target_ip > 0
-                  AND cast(concat(inbound.date, ' ', inbound.hour + ':00:00') as datetime) >= now() - INTERVAL 1 HOUR
-                  AND cast(concat(outbound.date, ' ', outbound.hour + ':00:00') as datetime) >= now() - INTERVAL 1 HOUR
+                  AND cast(concat(inbound.date, ' ', inbound.hour + ':00:00') as datetime) >= now() - INTERVAL %d HOUR
+                  AND cast(concat(outbound.date, ' ', outbound.hour + ':00:00') as datetime) >= now() - INTERVAL %d HOUR
 GROUP BY inbound.hostname, inbound.process_name, outbound.hostname, outbound.process_name
 ORDER BY inbound.process_name, outbound.process_name;`
 
@@ -37,7 +40,7 @@ func NewNodesStorage(connectionString string) (*Storage, error) {
 		return nil, err
 	}
 
-	graphDataStmt, err := db.Prepare(graphDataSQL)
+	graphDataStmt, err := db.Prepare(fmt.Sprintf(graphDataSQL, LastHoursCnt, LastHoursCnt))
 	if err != nil {
 		return nil, err
 	}

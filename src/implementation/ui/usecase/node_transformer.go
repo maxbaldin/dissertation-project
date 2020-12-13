@@ -1,8 +1,11 @@
 package usecase
 
 import (
+	"fmt"
+
 	"github.com/docker/go-units"
 	"github.com/maxbaldin/dissertation-project/src/implementation/ui/entity"
+	"github.com/maxbaldin/dissertation-project/src/implementation/ui/integration/mysql"
 )
 
 const WeightClustersCnr = 6
@@ -45,7 +48,18 @@ func (t *NodeTransformer) Transform(in entity.GraphDataElements) (resp entity.Gr
 			if weight < 1 {
 				weight = 1
 			}
-			edge := entity.NewEdge(v.EdgeId(), v.SourceServiceID(), v.TargetServiceID(), units.BytesSize(float64(v.SizeBytes)), weight)
+			composedLabel := fmt.Sprintf(
+				"%s / %.2fMbps",
+				units.BytesSize(float64(v.SizeBytes)),
+				(float32(v.SizeBytes)/(60*60*mysql.LastHoursCnt)/1024/1024)*8,
+			)
+			edge := entity.NewEdge(
+				v.EdgeId(),
+				v.SourceServiceID(),
+				v.TargetServiceID(),
+				composedLabel,
+				weight,
+			)
 			response.Edges = append(response.Edges, edge)
 		}
 	}

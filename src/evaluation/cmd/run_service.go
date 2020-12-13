@@ -40,7 +40,7 @@ func main() {
 
 	entry := logger.WithField("app", config.Service.Name)
 
-	service := evaluation.NewTestService(config.OutboundDependencies, config.Service.ListenAddr, time.Second*10, entry)
+	service := evaluation.NewTestService(config.OutboundDependencies, config.Service.ListenAddr, time.Second*25, entry)
 
 	service.Run(context.Background())
 }

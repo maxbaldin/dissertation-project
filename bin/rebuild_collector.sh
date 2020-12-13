@@ -1,5 +1,5 @@
 cd ..
-docker-compose stop -t 1 collector
-docker-compose build collector
-docker-compose up --no-start collector
-docker-compose start collector
+sudo docker-compose stop -t 1 collector
+sudo docker-compose build collector
+sudo docker-compose up --no-start collector
+sudo docker-compose start collector

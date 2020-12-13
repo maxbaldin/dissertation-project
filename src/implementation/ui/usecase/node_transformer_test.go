@@ -16,7 +16,7 @@ func TestNodeTransformer_Transform(t *testing.T) {
 			TargetHost:    "2463cf10eb0f",
 			TargetService: "service_a",
 			PacketsCnt:    82551,
-			SizeBytes:     5448394,
+			SizeBytes:     (1024 * 1024 / 8) * 3600,
 		},
 		{
 			SourceHost:    "2463cf10eb0f",
@@ -24,7 +24,7 @@ func TestNodeTransformer_Transform(t *testing.T) {
 			TargetHost:    "c1f3c0fe5e3c",
 			TargetService: "service_b",
 			PacketsCnt:    100833,
-			SizeBytes:     32463946,
+			SizeBytes:     (1024 * 1024 / 8) * 3600,
 		},
 	}
 	transformer := usecase.NewNodeTransformer()
