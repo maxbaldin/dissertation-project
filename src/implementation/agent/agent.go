@@ -29,6 +29,7 @@ func main() {
 	nodesRepository, err := collector.NewNodeRepository(
 		cfg.Integration.Collector.KnownNodes.URL,
 		time.Duration(cfg.Integration.Collector.KnownNodes.UpdateIntervalSec)*time.Second,
+		cfg.Integration.Collector.KnownNodes.Additional,
 	)
 	checkErr(err)
 

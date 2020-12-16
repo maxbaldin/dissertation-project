@@ -9,6 +9,13 @@ import (
 
 type ProcessesIndex map[int]Process
 
+func (p ProcessesIndex) InodeExist(inodeId int) (proc Process, b bool) {
+	if val, ok := p[inodeId]; ok {
+		return val, ok
+	}
+	return proc, false
+}
+
 type Process struct {
 	PID  int
 	User int
@@ -78,7 +85,6 @@ func GetProcMap() (ProcessesIndex, error) {
 			}
 		}
 	}
-
 	return res, nil
 }
 

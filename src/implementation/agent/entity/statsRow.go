@@ -18,6 +18,8 @@ func (s *StatsRow) Hash() string {
 	if s.hash == "" {
 		var buff bytes.Buffer
 
+		buff.WriteString(fmt.Sprintf("%v", s.Process.Path))
+		buff.WriteString(fmt.Sprintf("%v", s.Process.CommunicationWithKnownNode))
 		buff.WriteString(fmt.Sprintf("%v", s.Process.Id))
 		buff.WriteString(s.Process.Name)
 		buff.WriteString(s.Process.Path)

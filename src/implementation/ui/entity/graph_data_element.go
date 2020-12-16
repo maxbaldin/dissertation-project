@@ -29,12 +29,13 @@ func (g GraphDataElements) MaxSize() (max int) {
 }
 
 type GraphDataElement struct {
-	SourceHost    string
-	SourceService string
-	TargetHost    string
-	TargetService string
-	PacketsCnt    int
-	SizeBytes     int
+	SourceHost         string
+	SourceService      string
+	TargetHost         string
+	TargetService      string
+	PacketsCnt         int
+	SizeBytes          int
+	SizeBytesPerMinute int
 }
 
 func (g GraphDataElement) SourceServiceID() string {

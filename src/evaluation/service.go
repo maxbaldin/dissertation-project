@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/maxbaldin/dissertation-project/src/evaluation/usecase"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -60,15 +61,15 @@ func (ts *TestService) writer(dependency OutboundDependency, ctx context.Context
 		<-ctx.Done()
 		needToStop = true
 	}()
-
+	dependencyAddr := usecase.ReplaceLocalhostWithOutboundIP(dependency.Addr)
 start:
 	if needToStop {
 		return
 	}
 	ts.logger.Info("Creating new TCP connection")
-	conn, err := net.Dial(dependency.Protocol, dependency.Addr)
+	conn, err := net.Dial(dependency.Protocol, dependencyAddr)
 	if err != nil {
-		ts.logger.Warnf("Unable connect to the target service %s (%s): sleep %s and reconnecting", dependency.Addr, err, ReconnectInterval)
+		ts.logger.Warnf("Unable connect to the target service %s (%s): sleep %s and reconnecting", dependencyAddr, err, ReconnectInterval)
 		time.Sleep(ReconnectInterval)
 		goto start
 	}
@@ -83,12 +84,13 @@ start:
 		rand.Read(packet)
 		_, err := conn.Write(packet)
 		if err != nil {
-			ts.logger.Debugf("Reconnecting with %s (%s)", dependency.Addr, err)
+			ts.logger.Debugf("Reconnecting with %s (%s)", dependencyAddr, err)
 			goto start
 		}
 		sentBytes += dependency.PacketSize
 		if dependency.TotalTransferSize > 0 && sentBytes >= dependency.TotalTransferSize {
 			ts.logger.Infof("Stopping writing, reached the limit %d bytes", sentBytes)
+			conn.Close()
 			break
 		}
 		time.Sleep(time.Millisecond * time.Duration(dependency.TimeBetweenPacketsMilliseconds))
@@ -104,12 +106,13 @@ func (ts *TestService) listener(ctx context.Context, wg *sync.WaitGroup) {
 		needToStop = true
 	}()
 
-	l, err := net.Listen("tcp4", ts.listenAddr)
+	listenAddr := usecase.ReplaceLocalhostWithOutboundIP(ts.listenAddr)
+	l, err := net.Listen("tcp4", listenAddr)
 	if err != nil {
 		ts.logger.Fatalf("Error listening: %s", err)
 	}
 	defer l.Close()
-	ts.logger.Infof("Listen on %s", ts.listenAddr)
+	ts.logger.Infof("Listen on %s", listenAddr)
 
 	for {
 		if needToStop {
@@ -139,7 +142,7 @@ func (ts *TestService) handleConnection(conn net.Conn) {
 		bytesCnt += n
 		if err != nil {
 			if err != io.EOF {
-				ts.logger.Warnf("Read error:", err)
+				ts.logger.Warnf("Read error: %s", err)
 			}
 			break
 		}

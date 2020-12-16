@@ -8,7 +8,7 @@ integration:
     default_timeout_ms: 500
   process:
     repository:
-      update_interval_ms: 10
+      update_interval_ms: 1
   collector:
     producer:
       url: http://collector/collect

@@ -10,22 +10,26 @@ import (
 )
 
 type NodesRepository struct {
-	nodesListAddr string
-	nodesList     []string
-	updateTicker  *time.Ticker
+	nodesListAddr       string
+	nodesList           []string
+	additionalNodesList []string
+	updateTicker        *time.Ticker
 }
 
-func NewNodeRepository(nodesListAddr string, updateInterval time.Duration) (*NodesRepository, error) {
-	repo := &NodesRepository{updateTicker: time.NewTicker(updateInterval), nodesListAddr: nodesListAddr}
+func NewNodeRepository(nodesListAddr string, updateInterval time.Duration, additional []string) (*NodesRepository, error) {
+	repo := &NodesRepository{
+		updateTicker:        time.NewTicker(updateInterval),
+		nodesListAddr:       nodesListAddr,
+		nodesList:           additional,
+		additionalNodesList: additional,
+	}
 
 	go func(t *time.Ticker) {
 		for range t.C {
-			log.Info("Updating known nodes...")
 			err := repo.update()
 			if err != nil {
 				log.Warn(err)
 			}
-			log.Info("Know nodes updated...")
 		}
 	}(repo.updateTicker)
 
@@ -42,7 +46,9 @@ func (nr *NodesRepository) update() error {
 	if err != nil {
 		return err
 	}
-	nr.nodesList = strings.Split(string(b), ",")
+	list := strings.Split(string(b), ",")
+	list = append(list, nr.additionalNodesList...)
+	nr.nodesList = list
 	return nil
 }
 

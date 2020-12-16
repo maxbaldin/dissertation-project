@@ -1,14 +1,16 @@
 package usecase
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/docker/go-units"
 	"github.com/maxbaldin/dissertation-project/src/implementation/ui/entity"
-	"github.com/maxbaldin/dissertation-project/src/implementation/ui/integration/mysql"
 )
 
 const WeightClustersCnr = 6
+
+var ErrNoData = errors.New("no data")
 
 type NodeTransformer struct {
 }
@@ -51,7 +53,7 @@ func (t *NodeTransformer) Transform(in entity.GraphDataElements) (resp entity.Gr
 			composedLabel := fmt.Sprintf(
 				"%s / %.2fMbps",
 				units.BytesSize(float64(v.SizeBytes)),
-				(float32(v.SizeBytes)/(60*60*mysql.LastHoursCnt)/1024/1024)*8,
+				(float32(v.SizeBytesPerMinute)/1024/1024/60)*8,
 			)
 			edge := entity.NewEdge(
 				v.EdgeId(),
@@ -63,5 +65,10 @@ func (t *NodeTransformer) Transform(in entity.GraphDataElements) (resp entity.Gr
 			response.Edges = append(response.Edges, edge)
 		}
 	}
+
+	if len(response.Edges) == 0 && len(response.Nodes) == 0 {
+		return resp, ErrNoData
+	}
+
 	return response, nil
 }

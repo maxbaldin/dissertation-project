@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/maxbaldin/dissertation-project/src/evaluation"
+	"github.com/maxbaldin/dissertation-project/src/evaluation/usecase"
 
 	yaml "gopkg.in/yaml.v2"
 
@@ -40,7 +41,10 @@ func main() {
 
 	entry := logger.WithField("app", config.Service.Name)
 
-	service := evaluation.NewTestService(config.OutboundDependencies, config.Service.ListenAddr, time.Second*25, entry)
+	listenAddr := usecase.ReplaceLocalhostWithOutboundIP(config.Service.ListenAddr)
+
+	logger.Infof("Listening on %s", listenAddr)
+	service := evaluation.NewTestService(config.OutboundDependencies, listenAddr, time.Second*120, entry)
 
 	service.Run(context.Background())
 }

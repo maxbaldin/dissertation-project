@@ -8,6 +8,7 @@ GRANT SELECT ON collector.* TO 'ui'@'%';
 CREATE TABLE IF NOT EXISTS `inbound_traffic` (
              `date` date NOT NULL,
              `hour` int unsigned NOT NULL DEFAULT '0',
+             `minute` int unsigned NOT NULL DEFAULT '0',
              `process_name` varchar(30) NOT NULL,
              `hostname` varchar(30) NOT NULL,
              `source_ip` varbinary(16) NOT NULL,
@@ -16,13 +17,14 @@ CREATE TABLE IF NOT EXISTS `inbound_traffic` (
              `target_port` int unsigned NOT NULL,
              `packets` int unsigned NOT NULL,
              `size` bigint unsigned DEFAULT NULL,
-             UNIQUE KEY `inbound_traffic_pk` (`date`,`hour`,`process_name`,`hostname`,`source_ip`,`source_port`,`target_ip`,`target_port`),
+             UNIQUE KEY `inbound_traffic_pk` (`date`,`hour`,`minute`,`process_name`,`hostname`,`source_ip`,`source_port`,`target_ip`,`target_port`),
              KEY `inbound_traffic_date_hour_index` (`date` DESC,`hour` DESC)
            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS `outbound_traffic` (
              `date` date NOT NULL,
              `hour` int unsigned NOT NULL DEFAULT '0',
+             `minute` int unsigned NOT NULL DEFAULT '0',
              `process_name` varchar(30) NOT NULL,
              `hostname` varchar(30) NOT NULL,
              `source_ip` varbinary(16) NOT NULL,
@@ -31,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `outbound_traffic` (
              `target_port` int unsigned NOT NULL,
              `packets` int unsigned NOT NULL,
              `size` bigint unsigned DEFAULT NULL,
-             UNIQUE KEY `outbound_traffic_pk` (`date`,`hour`,`process_name`,`hostname`,`source_ip`,`source_port`,`target_ip`,`target_port`),
+             UNIQUE KEY `outbound_traffic_pk` (`date`,`hour`,`minute`,`process_name`,`hostname`,`source_ip`,`source_port`,`target_ip`,`target_port`),
              KEY `outbound_traffic_date_hour_index` (`date` DESC,`hour` DESC)
            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 

@@ -13,6 +13,7 @@ const outboundTrafficTable = "outbound_traffic"
 
 const insertOrUpdateStatement = `INSERT INTO collector.%s (date, 
                                        hour,
+									   minute,
                                        process_name,
                                        hostname,
                                        source_ip,
@@ -21,7 +22,7 @@ const insertOrUpdateStatement = `INSERT INTO collector.%s (date,
                                        target_port,
                                        packets,
                                        size)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON DUPLICATE KEY UPDATE packets = packets + VALUES(packets),
                         size    = size + VALUES(size);`
 
@@ -63,7 +64,7 @@ func New(connectionString string) (*Storage, error) {
 	}, nil
 }
 
-func (s *Storage) InsertOrUpdateTraffic(inbound bool, date string, hour int, processName, hostname string, sourceIp, sourcePort, targetIp, targetPort int, packets, size uint) error {
+func (s *Storage) InsertOrUpdateTraffic(inbound bool, date string, hour, minute int, processName, hostname string, sourceIp, sourcePort, targetIp, targetPort int, packets, size uint) error {
 	var currStmt *sql.Stmt
 	if inbound {
 		currStmt = s.inboundInsertOrUpdateStmt
@@ -71,7 +72,7 @@ func (s *Storage) InsertOrUpdateTraffic(inbound bool, date string, hour int, pro
 		currStmt = s.outboundInsertOrUpdateStmt
 	}
 
-	_, err := currStmt.Exec(date, hour, processName, hostname, sourceIp, sourcePort, targetIp, targetPort, packets, size)
+	_, err := currStmt.Exec(date, hour, minute, processName, hostname, sourceIp, sourcePort, targetIp, targetPort, packets, size)
 	return err
 }
 

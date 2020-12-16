@@ -81,24 +81,36 @@ func (r *Repository) updateAll() error {
 func (r *Repository) FindByNetworkActivity(packet entity.Packet) (proc entity.Process) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	srcInfo, srcInfoExist := r.connectionsIndex.LookupSource(packet.SourceIp, packet.SourcePort)
-	targetInfo, targetInfoExist := r.connectionsIndex.LookupSource(packet.TargetIp, packet.TargetPort)
 
-	if srcInfoExist {
-		if process, exist := r.processesIndex[srcInfo.Inode]; exist {
-			proc.Id = process.PID
-			proc.Name = process.Name
-			proc.Sender = true
-			proc.CommunicationWithKnownNode = r.nodesRepository.IsKnownNode(packet.TargetIp)
-			return proc
-		}
-	} else if targetInfoExist {
-		if process, exist := r.processesIndex[targetInfo.Inode]; exist {
-			proc.Id = process.PID
-			proc.Name = process.Name
-			proc.CommunicationWithKnownNode = r.nodesRepository.IsKnownNode(packet.SourceIp)
-			return proc
-		}
+	srcInfo, srcInfoExist := r.connectionsIndex.LookupSource(packet.SourceIp, packet.SourcePort)
+	srcProcessInfo, srcInodeExist := r.processesIndex.InodeExist(srcInfo.Inode)
+	srcFit := srcInfoExist &&
+		packet.SourceIp == srcInfo.Local.IpV4.String() &&
+		packet.SourcePort == srcInfo.Local.Port &&
+		packet.TargetIp == srcInfo.Remote.IpV4.String() &&
+		packet.TargetPort == srcInfo.Remote.Port &&
+		srcInodeExist
+
+	targetInfo, targetInfoExist := r.connectionsIndex.LookupSource(packet.TargetIp, packet.TargetPort)
+	targetProcessInfo, targetInodeExist := r.processesIndex.InodeExist(targetInfo.Inode)
+	targetFit := targetInfoExist &&
+		packet.SourceIp == targetInfo.Remote.IpV4.String() &&
+		packet.SourcePort == targetInfo.Remote.Port &&
+		packet.TargetIp == targetInfo.Local.IpV4.String() &&
+		packet.TargetPort == targetInfo.Local.Port &&
+		targetInodeExist
+
+	if srcFit {
+		proc.Id = srcProcessInfo.PID
+		proc.Name = srcProcessInfo.Name
+		proc.Sender = true
+		proc.CommunicationWithKnownNode = r.nodesRepository.IsKnownNode(packet.TargetIp)
+		return proc
+	} else if targetFit {
+		proc.Id = targetProcessInfo.PID
+		proc.Name = targetProcessInfo.Name
+		proc.CommunicationWithKnownNode = r.nodesRepository.IsKnownNode(packet.SourceIp)
+		return proc
 	}
 
 	return UnknownProcess

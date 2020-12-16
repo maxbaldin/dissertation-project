@@ -8,7 +8,7 @@ import (
 const YMDFormat = "2006-01-02"
 
 type TrafficDB interface {
-	InsertOrUpdateTraffic(inbound bool, date string, hour int, processName, hostname string, sourceIp, sourcePort, targetIp, targetPort int, packets, size uint) error
+	InsertOrUpdateTraffic(inbound bool, date string, hour, minute int, processName, hostname string, sourceIp, sourcePort, targetIp, targetPort int, packets, size uint) error
 }
 
 type TrafficRepository struct {
@@ -26,6 +26,7 @@ func (tr *TrafficRepository) Persist(row entity.Traffic) error {
 		row.Inbound,
 		row.Date.Format(YMDFormat),
 		row.Date.Hour(),
+		row.Date.Minute(),
 		row.ProcessName,
 		row.Hostname,
 		int(utils.Ip2int(row.SourceIP)),

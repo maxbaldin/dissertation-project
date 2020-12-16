@@ -4,6 +4,8 @@ MAINTAINER  Maksim Baldin maksim.baldin@online.liverpool.ac.uk
 RUN apt-get update && apt-get install -y supervisor
 RUN apt-get install -y python-pip && pip install supervisor-stdout
 RUN apt-get install libpcap-dev -y
+RUN apt-get install -y nethogs
+RUN apt-get install -y tcpstat
 
 RUN mkdir -p /var/log/supervisor
 

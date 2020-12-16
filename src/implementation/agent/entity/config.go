@@ -34,7 +34,8 @@ type Config struct {
 			}
 			KnownNodes struct {
 				URL               string
-				UpdateIntervalSec int `yaml:"update_interval_sec"`
+				UpdateIntervalSec int      `yaml:"update_interval_sec"`
+				Additional        []string `yaml:"additional"`
 			} `yaml:"known_nodes"`
 		}
 	}

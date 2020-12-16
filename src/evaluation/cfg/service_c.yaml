@@ -1,8 +1,9 @@
 service:
   name: service_c
-  listen_addr: 0.0.0.0:9091
+  listen_addr: host:9091
 outbound_dependencies:
   - protocol: tcp
     addr: node_3_services_d:9090
     packet_size: 512
-    time_between_packets_ms: 1
+    time_between_packets_ms: 15
+    total_size: 10485760
