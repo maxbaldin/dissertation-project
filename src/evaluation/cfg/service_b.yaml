@@ -6,4 +6,3 @@ outbound_dependencies:
     addr: host:9091
     packet_size: 2048
     time_between_packets_ms: 1
-    total_size: 10485760

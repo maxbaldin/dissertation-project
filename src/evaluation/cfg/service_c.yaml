@@ -6,4 +6,3 @@ outbound_dependencies:
     addr: node_3_services_d:9090
     packet_size: 512
     time_between_packets_ms: 15
-    total_size: 10485760
